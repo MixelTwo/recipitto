@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es2022",       /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', etc. Modern browsers support 'es2022' (or 'ES6'/'ESNext'). */
+    "module": "ESNext",       /* Specify module code generation: 'None', 'CommonJS', 'AMD', 'System', etc. 'ESNext' is best for modern web development with bundlers. */
+    "outDir": "./wwwroot/dist",       /* Redirect output structure to the directory where all the JS files go. */
+    "rootDir": "./src",       /* Specify the root directory of input files. */
+    "strict": true,           /* Enable all strict type-checking options. Highly recommended. */
+    "esModuleInterop": true,  /* Allow default imports from modules with no default export. */
+    "skipLibCheck": true,     /* Skip type checking of declaration files. */
+    "forceConsistentCasingInFileNames": true, /* Ensure that casing is consistent throughout a file. */
+    "noUncheckedIndexedAccess": true,         /* Add 'undefined' to a type when accessed using an index. */
+    "moduleResolution": "node", /* Resolve modules using Node.js style, which is common even for front-end bundlers. */
+    "allowJs": true,          /* Allow JavaScript files to be compiled. */
+    "resolveJsonModule": true, /* Include modules imported from .json files. */
+    "isolatedModules": true,   /* Ensure that each file can be safely transpiled without relying on other files. */
+    "lib": ["DOM", "ESNext"],  /* Specify library files to be included in the compilation. "DOM" is essential for web APIs. */
+  },
+  "include": ["src/**/*"],    /* Specify which files are included in the compilation. */
+  "exclude": ["node_modules"] /* Specify files to exclude from the compilation. */
+}
