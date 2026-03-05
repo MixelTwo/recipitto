@@ -1,0 +1,4 @@
+bafser==2.8.7
+python-dotenv
+requests
+gunicorn

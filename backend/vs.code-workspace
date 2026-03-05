@@ -1,0 +1,34 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"editor.insertSpaces": true,
+		"editor.formatOnSave": true,
+		"editor.formatOnType": true,
+		// "debugpy.debugJustMyCode": false,
+		"python.analysis.typeCheckingMode": "strict",
+		"python.analysis.diagnosticSeverityOverrides": {
+			"reportMissingTypeStubs": "none"
+		}
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Python: main.py",
+				"type": "debugpy",
+				"request": "launch",
+				// "program": "${file}",
+				"program": "main.py",
+				"console": "integratedTerminal",
+				"args": [
+					"delay",
+					"dev"
+				]
+			}
+		]
+	}
+}
