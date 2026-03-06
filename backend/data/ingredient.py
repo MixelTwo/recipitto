@@ -4,7 +4,7 @@ from bafser import Log, ObjMixin, SqlAlchemyBase
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from data import Tables, User
+from data import IngredientCategory, Tables, User
 from utils import normalize_for_search
 
 
