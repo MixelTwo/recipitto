@@ -1,0 +1,36 @@
+.layout {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.layout__header {
+	width: 100%;
+	background-color: var(--primary-200);
+	padding: 0 1em;
+}
+
+.layout__header > div {
+	max-width: 800px;
+	margin: auto;
+	display: flex;
+	align-items: center;
+	gap: 2em;
+}
+
+.layout__logo {
+	font-size: 1.5em;
+}
+
+.layout__links {
+	padding: 1em;
+	display: flex;
+	align-items: center;
+	gap: 1em;
+}
+
+.layout__body {
+	width: 100%;
+	max-width: 800px;
+}
