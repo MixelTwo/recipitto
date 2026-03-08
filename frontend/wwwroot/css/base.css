@@ -17,6 +17,7 @@ body {
 	display: flex;
 	min-height: 100%;
 	text-decoration-skip-ink: none;
+	font-family: "PT Sans", Arial, Helvetica, sans-serif;
 
 	--primary-50: #fff3e5;
 	--primary-75: #ffeedb;
