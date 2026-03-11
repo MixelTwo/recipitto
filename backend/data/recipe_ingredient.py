@@ -1,6 +1,6 @@
 from typing import TypedDict
 
-from bafser import Log, SqlAlchemyBase
+from bafser import Log, SqlAlchemyBase, get_db_session
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship, Session
 
@@ -52,16 +52,18 @@ class RecipeIngredient(SqlAlchemyBase):
         Log.updated(self, actor)
 
     @classmethod
-    def get_by_recipe(cls, db_sess: Session, recipe_id: int) -> list["RecipeIngredient"]:
+    def get_by_recipe(cls, recipe_id: int, *, db_sess: Session | None = None) -> list["RecipeIngredient"]:
+        db_sess = db_sess or get_db_session()
         return list(db_sess.query(cls).filter_by(recipe_id=recipe_id).all())
 
     @classmethod
-    def get_by_recipe_and_ingredient(cls, db_sess: Session, recipe_id: int, ingredient_id: int) -> "RecipeIngredient | None":
+    def get_by_recipe_and_ingredient(cls, recipe_id: int, ingredient_id: int, *, db_sess: Session | None = None) -> "RecipeIngredient | None":
+        db_sess = db_sess or get_db_session()
         return db_sess.query(cls).filter_by(recipe_id=recipe_id, ingredient_id=ingredient_id).first()
 
     @classmethod
-    def exists(cls, db_sess: Session, recipe_id: int, ingredient_id: int) -> bool:
-        return cls.get_by_recipe_and_ingredient(db_sess, recipe_id, ingredient_id) is not None
+    def exists(cls, recipe_id: int, ingredient_id: int, *, db_sess: Session | None = None) -> bool:
+        return cls.get_by_recipe_and_ingredient(recipe_id, ingredient_id, db_sess=db_sess) is not None
 
     def get_dict(self) -> "RecipeIngredientDict":
         return {

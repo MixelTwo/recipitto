@@ -47,8 +47,8 @@ class Comment(SqlAlchemyBase, ObjMixin):
         Log.updated(self, actor)
 
     @classmethod
-    def get_by_recipe(cls, db_sess: Session, recipe_id: int) -> list["Comment"]:
-        return list(db_sess.query(cls).filter_by(recipe_id=recipe_id).order_by(cls.created_at.desc()).all())
+    def get_by_recipe(cls, recipe_id: int, *, db_sess: Session | None = None) -> list["Comment"]:
+        return list(cls.query2(db_sess=db_sess).filter_by(recipe_id=recipe_id).order_by(cls.created_at.desc()).all())
 
     def get_dict(self) -> "CommentDict":
         return {

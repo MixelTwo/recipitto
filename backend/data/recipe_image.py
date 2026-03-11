@@ -32,12 +32,12 @@ class RecipeImage(SqlAlchemyBase, ObjMixin):
         return obj
 
     @classmethod
-    def get_by_recipe(cls, db_sess: Session, recipe_id: int) -> list["RecipeImage"]:
-        return list(db_sess.query(cls).filter_by(recipe_id=recipe_id).all())
+    def get_by_recipe(cls, recipe_id: int, *, db_sess: Session | None = None) -> list["RecipeImage"]:
+        return list(cls.query2(db_sess=db_sess).filter_by(recipe_id=recipe_id).all())
 
     @classmethod
-    def get_by_recipe_and_image(cls, db_sess: Session, recipe_id: int, image_id: int) -> "RecipeImage | None":
-        return db_sess.query(cls).filter_by(recipe_id=recipe_id, image_id=image_id).first()
+    def get_by_recipe_and_image(cls, recipe_id: int, image_id: int, *, db_sess: Session | None = None) -> "RecipeImage | None":
+        return cls.query2(db_sess=db_sess).filter_by(recipe_id=recipe_id, image_id=image_id).first()
 
     def get_dict(self) -> "RecipeImageDict":
         return {

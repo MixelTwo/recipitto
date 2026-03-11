@@ -1,6 +1,5 @@
-from bafser import JsonObj, JsonOpt, Undefined, abort_if_none, doc_api, jsonify_list, protected_route, response_msg, use_db_sess
+from bafser import JsonObj, JsonOpt, Undefined, abort_if_none, doc_api, jsonify_list, protected_route, response_msg
 from flask import Blueprint
-from sqlalchemy.orm import Session
 
 from data._operations import Operations
 from data.comment import Comment, CommentDict
@@ -20,10 +19,9 @@ class UpdateCommentJson(JsonObj):
 
 @bp.get("/api/recipes/<int:recipe_id>/comments")
 @doc_api(res=list[CommentDict], desc="List comments of a recipe")
-@use_db_sess
-def list_comments(db_sess: Session, recipe_id: int):
+def list_comments(recipe_id: int):
     abort_if_none(Recipe.get2(recipe_id), "recipe")
-    comments = Comment.get_by_recipe(db_sess, recipe_id)
+    comments = Comment.get_by_recipe(recipe_id)
     return jsonify_list(comments)
 
 

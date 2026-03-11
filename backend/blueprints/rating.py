@@ -1,8 +1,7 @@
 from typing import TypedDict
 
-from bafser import JsonObj, doc_api, protected_route, response_msg, abort_if_none, use_db_sess
+from bafser import JsonObj, doc_api, protected_route, response_msg, abort_if_none
 from flask import Blueprint, Response
-from sqlalchemy.orm import Session
 
 from data._operations import Operations
 from data.rating import Rating, RatingDict
@@ -25,10 +24,9 @@ class RatingStatsDict(TypedDict):
 
 @bp.get("/api/recipes/<int:recipe_id>/ratings")
 @doc_api(res=RatingStatsDict, desc="Get rating statistics for a recipe")
-@use_db_sess
-def get_ratings_stats(db_sess: Session, recipe_id: int) -> RatingStatsDict | Response:
+def get_ratings_stats(recipe_id: int) -> RatingStatsDict | Response:
     abort_if_none(Recipe.get2(recipe_id), "recipe")
-    avg, count, distribution = Rating.get_stats(db_sess, recipe_id)
+    avg, count, distribution = Rating.get_stats(recipe_id)
     return {
         "recipe_id": recipe_id,
         "average": round(avg, 2),
@@ -40,24 +38,22 @@ def get_ratings_stats(db_sess: Session, recipe_id: int) -> RatingStatsDict | Res
 @bp.get("/api/recipes/<int:recipe_id>/ratings/me")
 @doc_api(res=RatingDict, desc="Get current user's rating for a recipe")
 @protected_route(perms=Operations.rating_view)
-@use_db_sess
-def get_my_rating(db_sess: Session, recipe_id: int):
+def get_my_rating(recipe_id: int):
     abort_if_none(Recipe.get2(recipe_id), "recipe")
-    rating = abort_if_none(Rating.get_by_user_and_recipe(db_sess, User.current.id, recipe_id), msg="Not rated")
+    rating = abort_if_none(Rating.get_by_user_and_recipe(User.current.id, recipe_id), msg="Not rated")
     return rating.get_dict()
 
 
 @bp.post("/api/recipes/<int:recipe_id>/ratings")
 @doc_api(req=CreateOrUpdateRatingJson, res=RatingDict, desc="Rate a recipe (create or update)")
 @protected_route(perms=Operations.rating_create)
-@use_db_sess
-def rate_recipe(db_sess: Session, recipe_id: int):
+def rate_recipe(recipe_id: int):
     abort_if_none(Recipe.get2(recipe_id), "recipe")
     req = CreateOrUpdateRatingJson.get_from_req()
     if not (1 <= req.rating <= 5):
         return response_msg("Rating must be between 1 and 5", 400)
     # Check if already rated
-    existing = Rating.get_by_user_and_recipe(db_sess, User.current.id, recipe_id)
+    existing = Rating.get_by_user_and_recipe(User.current.id, recipe_id)
     if existing:
         # Update
         existing.update(rating=req.rating)
@@ -75,10 +71,9 @@ def rate_recipe(db_sess: Session, recipe_id: int):
 @bp.delete("/api/recipes/<int:recipe_id>/ratings")
 @doc_api(res=None, desc="Remove current user's rating for a recipe")
 @protected_route(perms=Operations.rating_delete)
-@use_db_sess
-def delete_rating(db_sess: Session, recipe_id: int):
+def delete_rating(recipe_id: int):
     abort_if_none(Recipe.get2(recipe_id), "recipe")
-    rating = abort_if_none(Rating.get_by_user_and_recipe(db_sess, User.current.id, recipe_id), msg="Rating not found")
-    db_sess.delete(rating)
-    db_sess.commit()
+    rating = abort_if_none(Rating.get_by_user_and_recipe(User.current.id, recipe_id), msg="Rating not found")
+    rating.db_sess.delete(rating)
+    rating.db_sess.commit()
     return "", 204

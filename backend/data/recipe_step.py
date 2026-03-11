@@ -1,6 +1,6 @@
 from typing import TypedDict
 
-from bafser import Image, Log, ObjMixin, SqlAlchemyBase
+from bafser import Image, Log, ObjMixin, SqlAlchemyBase, get_db_session
 from sqlalchemy import ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, Session
 
@@ -54,7 +54,8 @@ class RecipeStep(SqlAlchemyBase, ObjMixin):
         Log.updated(self, actor)
 
     @classmethod
-    def get_by_recipe(cls, db_sess: Session, recipe_id: int) -> list["RecipeStep"]:
+    def get_by_recipe(cls, recipe_id: int, *, db_sess: Session | None = None) -> list["RecipeStep"]:
+        db_sess = db_sess or get_db_session()
         return list(db_sess.query(cls).filter_by(recipe_id=recipe_id).all())
 
     def get_dict(self) -> "RecipeStepDict":

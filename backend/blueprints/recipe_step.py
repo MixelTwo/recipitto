@@ -1,6 +1,5 @@
-from bafser import JsonObj, JsonOpt, Undefined, doc_api, jsonify_list, protected_route, response_msg, abort_if_none, use_db_sess
+from bafser import JsonObj, JsonOpt, Undefined, abort_if_none, doc_api, jsonify_list, protected_route, response_msg
 from flask import Blueprint
-from sqlalchemy.orm import Session
 
 from data._operations import Operations
 from data.recipe import Recipe
@@ -24,10 +23,9 @@ class UpdateRecipeStepJson(JsonObj):
 
 @bp.get("/api/recipes/<int:recipe_id>/steps")
 @doc_api(res=list[RecipeStepDict], desc="List steps of a recipe")
-@use_db_sess
-def list_steps(db_sess: Session, recipe_id: int):
+def list_steps(recipe_id: int):
     abort_if_none(Recipe.get2(recipe_id), "recipe")
-    steps = RecipeStep.get_by_recipe(db_sess, recipe_id)
+    steps = RecipeStep.get_by_recipe(recipe_id)
     return jsonify_list(steps)
 
 

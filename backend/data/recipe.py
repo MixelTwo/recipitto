@@ -70,6 +70,8 @@ class Recipe(SqlAlchemyBase, ObjMixin):
             difficulty=difficulty,
             author_id=author.id,
             category_id=category_id,
+            status=status,
+            main_image_id=main_image_id,
         )
         Log.added(obj, creator)
         return obj
