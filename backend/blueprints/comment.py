@@ -20,9 +20,10 @@ class UpdateCommentJson(JsonObj):
 
 @bp.get("/api/recipes/<int:recipe_id>/comments")
 @doc_api(res=list[CommentDict], desc="List comments of a recipe")
-def list_comments(recipe_id: int):
+@use_db_sess
+def list_comments(db_sess: Session, recipe_id: int):
     abort_if_none(Recipe.get2(recipe_id), "recipe")
-    comments = Comment.query2().filter_by(recipe_id=recipe_id).order_by(Comment.created_at.desc()).all()
+    comments = Comment.get_by_recipe(db_sess, recipe_id)
     return jsonify_list(comments)
 
 

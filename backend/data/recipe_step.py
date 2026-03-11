@@ -2,7 +2,7 @@ from typing import TypedDict
 
 from bafser import Image, Log, ObjMixin, SqlAlchemyBase
 from sqlalchemy import ForeignKey, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, Session
 
 from data import Tables, User
 from data.recipe import Recipe
@@ -52,6 +52,10 @@ class RecipeStep(SqlAlchemyBase, ObjMixin):
         if image_id is not None:
             self.image_id = image_id
         Log.updated(self, actor)
+
+    @classmethod
+    def get_by_recipe(cls, db_sess: Session, recipe_id: int) -> list["RecipeStep"]:
+        return list(db_sess.query(cls).filter_by(recipe_id=recipe_id).all())
 
     def get_dict(self) -> "RecipeStepDict":
         return {

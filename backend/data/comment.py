@@ -3,7 +3,7 @@ from typing import TypedDict
 
 from bafser import Log, ObjMixin, SqlAlchemyBase, get_datetime_now
 from sqlalchemy import ForeignKey, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, Session
 
 from data import Tables, User
 from data.recipe import Recipe
@@ -45,6 +45,10 @@ class Comment(SqlAlchemyBase, ObjMixin):
         if text is not None:
             self.text = text
         Log.updated(self, actor)
+
+    @classmethod
+    def get_by_recipe(cls, db_sess: Session, recipe_id: int) -> list["Comment"]:
+        return list(db_sess.query(cls).filter_by(recipe_id=recipe_id).order_by(cls.created_at.desc()).all())
 
     def get_dict(self) -> "CommentDict":
         return {

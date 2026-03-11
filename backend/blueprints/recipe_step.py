@@ -24,9 +24,10 @@ class UpdateRecipeStepJson(JsonObj):
 
 @bp.get("/api/recipes/<int:recipe_id>/steps")
 @doc_api(res=list[RecipeStepDict], desc="List steps of a recipe")
-def list_steps(recipe_id: int):
+@use_db_sess
+def list_steps(db_sess: Session, recipe_id: int):
     abort_if_none(Recipe.get2(recipe_id), "recipe")
-    steps = RecipeStep.query2().filter_by(recipe_id=recipe_id).all()
+    steps = RecipeStep.get_by_recipe(db_sess, recipe_id)
     return jsonify_list(steps)
 
 
