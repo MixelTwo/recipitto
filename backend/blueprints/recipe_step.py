@@ -43,8 +43,7 @@ def get_step(recipe_id: int, step_id: int):
 @bp.post("/api/recipes/<int:recipe_id>/steps")
 @doc_api(req=CreateRecipeStepJson, res=RecipeStepDict, desc="Add a step to a recipe")
 @protected_route(perms=Operations.recipe_step_create)
-@use_db_sess
-def create_step(db_sess: Session, recipe_id: int):
+def create_step(recipe_id: int):
     recipe = abort_if_none(Recipe.get2(recipe_id), "recipe")
     # Check ownership: if user is not admin and not author, deny
     if not User.current.has_operation(Operations.admin_moderate_recipes) and recipe.author_id != User.current.id:
@@ -62,8 +61,7 @@ def create_step(db_sess: Session, recipe_id: int):
 @bp.patch("/api/recipes/<int:recipe_id>/steps/<int:step_id>")
 @doc_api(req=UpdateRecipeStepJson, res=RecipeStepDict, desc="Update a recipe step")
 @protected_route(perms=Operations.recipe_step_update)
-@use_db_sess
-def update_step(db_sess: Session, recipe_id: int, step_id: int):
+def update_step(recipe_id: int, step_id: int):
     step = abort_if_none(RecipeStep.get2(step_id), "step")
     if step.recipe_id != recipe_id:
         return response_msg("Step not found", 404)
@@ -83,8 +81,7 @@ def update_step(db_sess: Session, recipe_id: int, step_id: int):
 @bp.delete("/api/recipes/<int:recipe_id>/steps/<int:step_id>")
 @doc_api(res=None, desc="Delete a recipe step")
 @protected_route(perms=Operations.recipe_step_delete)
-@use_db_sess
-def delete_step(db_sess: Session, recipe_id: int, step_id: int):
+def delete_step(recipe_id: int, step_id: int):
     step = abort_if_none(RecipeStep.get2(step_id), "step")
     if step.recipe_id != recipe_id:
         return response_msg("Step not found", 404)

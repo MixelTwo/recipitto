@@ -1,6 +1,5 @@
-from bafser import JsonObj, JsonOpt, Undefined, doc_api, jsonify_list, protected_route, abort_if_none, use_db_sess
+from bafser import JsonObj, JsonOpt, Undefined, doc_api, jsonify_list, protected_route, abort_if_none
 from flask import Blueprint
-from sqlalchemy.orm import Session
 
 from data._operations import Operations
 from data.ingredient import Ingredient, IngredientDict
@@ -35,8 +34,7 @@ def get_ingredient(ingredient_id: int):
 @bp.post("/api/ingredients")
 @doc_api(req=CreateIngredientJson, res=IngredientDict, desc="Create a new ingredient")
 @protected_route(perms=Operations.ingredient_create)
-@use_db_sess
-def create_ingredient(db_sess: Session):
+def create_ingredient():
     req = CreateIngredientJson.get_from_req()
     ingredient = Ingredient.new(req.name, req.category_id)
     return ingredient.get_dict()
@@ -45,8 +43,7 @@ def create_ingredient(db_sess: Session):
 @bp.patch("/api/ingredients/<int:ingredient_id>")
 @doc_api(req=UpdateIngredientJson, res=IngredientDict, desc="Update an ingredient")
 @protected_route(perms=Operations.ingredient_update)
-@use_db_sess
-def update_ingredient(db_sess: Session, ingredient_id: int):
+def update_ingredient(ingredient_id: int):
     req = UpdateIngredientJson.get_from_req()
     ingredient = abort_if_none(Ingredient.get2(ingredient_id), "ingredient")
     ingredient.update(
@@ -59,8 +56,7 @@ def update_ingredient(db_sess: Session, ingredient_id: int):
 @bp.delete("/api/ingredients/<int:ingredient_id>")
 @doc_api(res=None, desc="Delete an ingredient")
 @protected_route(perms=Operations.ingredient_delete)
-@use_db_sess
-def delete_ingredient(db_sess: Session, ingredient_id: int):
+def delete_ingredient(ingredient_id: int):
     ingredient = abort_if_none(Ingredient.get2(ingredient_id), "ingredient")
     ingredient.delete2()
     return "", 204

@@ -37,8 +37,7 @@ def get_comment(comment_id: int):
 @bp.post("/api/recipes/<int:recipe_id>/comments")
 @doc_api(req=CreateCommentJson, res=CommentDict, desc="Create a comment on a recipe")
 @protected_route(perms=Operations.comment_create)
-@use_db_sess
-def create_comment(db_sess: Session, recipe_id: int):
+def create_comment(recipe_id: int):
     abort_if_none(Recipe.get2(recipe_id), "recipe")
     req = CreateCommentJson.get_from_req()
     comment = Comment.new(
@@ -52,8 +51,7 @@ def create_comment(db_sess: Session, recipe_id: int):
 @bp.patch("/api/comments/<int:comment_id>")
 @doc_api(req=UpdateCommentJson, res=CommentDict, desc="Update a comment")
 @protected_route(perms=Operations.comment_update)
-@use_db_sess
-def update_comment(db_sess: Session, comment_id: int):
+def update_comment(comment_id: int):
     comment = abort_if_none(Comment.get2(comment_id), "comment")
     # Check ownership: if user is not admin and not author, deny
     if not User.current.has_operation(Operations.admin_manage_comments) and comment.user_id != User.current.id:
@@ -68,8 +66,7 @@ def update_comment(db_sess: Session, comment_id: int):
 @bp.delete("/api/comments/<int:comment_id>")
 @doc_api(res=None, desc="Delete a comment")
 @protected_route(perms=Operations.comment_delete)
-@use_db_sess
-def delete_comment(db_sess: Session, comment_id: int):
+def delete_comment(comment_id: int):
     comment = abort_if_none(Comment.get2(comment_id), "comment")
     # Check ownership: if user is not admin and not author, deny
     if not User.current.has_operation(Operations.admin_manage_comments) and comment.user_id != User.current.id:

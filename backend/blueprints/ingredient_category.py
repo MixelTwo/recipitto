@@ -1,6 +1,5 @@
-from bafser import JsonObj, JsonOpt, Undefined, abort_if_none, doc_api, jsonify_list, protected_route, use_db_sess
+from bafser import JsonObj, JsonOpt, Undefined, abort_if_none, doc_api, jsonify_list, protected_route
 from flask import Blueprint
-from sqlalchemy.orm import Session
 
 from data._operations import Operations
 from data.ingredient_category import IngredientCategory, IngredientCategoryDict
@@ -33,8 +32,7 @@ def get_category(category_id: int):
 @bp.post("/api/ingredient-categories")
 @doc_api(req=CreateIngredientCategoryJson, res=IngredientCategoryDict, desc="Create a new ingredient category")
 @protected_route(perms=Operations.ingredient_category_create)
-@use_db_sess
-def create_category(db_sess: Session):
+def create_category():
     req = CreateIngredientCategoryJson.get_from_req()
     category = IngredientCategory.new(req.name)
     return category.get_dict()
@@ -43,8 +41,7 @@ def create_category(db_sess: Session):
 @bp.patch("/api/ingredient-categories/<int:category_id>")
 @doc_api(req=UpdateIngredientCategoryJson, res=IngredientCategoryDict, desc="Update an ingredient category")
 @protected_route(perms=Operations.ingredient_category_update)
-@use_db_sess
-def update_category(db_sess: Session, category_id: int):
+def update_category(category_id: int):
     req = UpdateIngredientCategoryJson.get_from_req()
     category = abort_if_none(IngredientCategory.get2(category_id), "category")
     category.update(name=Undefined.default(req.name, None))
@@ -54,8 +51,7 @@ def update_category(db_sess: Session, category_id: int):
 @bp.delete("/api/ingredient-categories/<int:category_id>")
 @doc_api(res=None, desc="Delete an ingredient category")
 @protected_route(perms=Operations.ingredient_category_delete)
-@use_db_sess
-def delete_category(db_sess: Session, category_id: int):
+def delete_category(category_id: int):
     category = abort_if_none(IngredientCategory.get2(category_id), "category")
     category.delete2()
     return "", 204

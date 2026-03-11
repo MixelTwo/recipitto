@@ -1,6 +1,5 @@
-from bafser import JsonObj, JsonOpt, Undefined, doc_api, jsonify_list, protected_route, response_msg, abort_if_none, use_db_sess
+from bafser import JsonObj, JsonOpt, Undefined, doc_api, jsonify_list, protected_route, response_msg, abort_if_none
 from flask import Blueprint
-from sqlalchemy.orm import Session
 
 from data._operations import Operations
 from data.recipe import Recipe, RecipeDict, RecipeStatus, TRecipeStatus
@@ -49,8 +48,7 @@ def get_recipe(recipe_id: int):
 @bp.post("/api/recipes")
 @doc_api(req=CreateRecipeJson, res=RecipeDict, desc="Create a new recipe")
 @protected_route(perms=Operations.recipe_create)
-@use_db_sess
-def create_recipe(db_sess: Session):
+def create_recipe():
     req = CreateRecipeJson.get_from_req()
     # Validate status
     status = None
@@ -76,8 +74,7 @@ def create_recipe(db_sess: Session):
 @bp.patch("/api/recipes/<int:recipe_id>")
 @doc_api(req=UpdateRecipeJson, res=RecipeDict, desc="Update a recipe")
 @protected_route(perms=Operations.recipe_update)
-@use_db_sess
-def update_recipe(db_sess: Session, recipe_id: int):
+def update_recipe(recipe_id: int):
     req = UpdateRecipeJson.get_from_req()
     recipe = abort_if_none(Recipe.get2(recipe_id), "recipe")
     # Check ownership: if user is not admin and not author, deny
@@ -106,8 +103,7 @@ def update_recipe(db_sess: Session, recipe_id: int):
 @bp.delete("/api/recipes/<int:recipe_id>")
 @doc_api(res=None, desc="Delete a recipe")
 @protected_route(perms=Operations.recipe_delete)
-@use_db_sess
-def delete_recipe(db_sess: Session, recipe_id: int):
+def delete_recipe(recipe_id: int):
     recipe = abort_if_none(Recipe.get2(recipe_id), "recipe")
     # Check ownership: if user is not admin and not author, deny
     if not User.current.has_operation(Operations.admin_moderate_recipes) and recipe.author_id != User.current.id:
