@@ -1,8 +1,8 @@
 from typing import TypedDict
 
 from bafser import Log, SqlAlchemyBase
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, func
+from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
 from data import Tables, User
 from data.recipe import Recipe
@@ -43,6 +43,27 @@ class Rating(SqlAlchemyBase):
         if rating is not None:
             self.rating = rating
         Log.updated(self, actor)
+
+    @classmethod
+    def get_stats(cls, db_sess: Session, recipe_id: int) -> tuple[float, int, dict[str, int]]:
+        """Return (average, count, distribution) for a recipe."""
+        avg_result = db_sess.query(func.avg(cls.rating)).filter_by(recipe_id=recipe_id).scalar()
+        count_result = db_sess.query(func.count(cls.rating)).filter_by(recipe_id=recipe_id).scalar()
+        avg = float(avg_result) if avg_result else 0.0
+        count = count_result if count_result else 0
+        distribution: dict[str, int] = {}
+        for i in range(1, 6):
+            dist_count = db_sess.query(func.count(cls.rating)).filter_by(recipe_id=recipe_id, rating=i).scalar()
+            distribution[str(i)] = dist_count
+        return avg, count, distribution
+
+    @classmethod
+    def get_by_user_and_recipe(cls, db_sess: Session, user_id: int, recipe_id: int) -> "Rating | None":
+        return db_sess.query(cls).filter_by(user_id=user_id, recipe_id=recipe_id).first()
+
+    @classmethod
+    def exists(cls, db_sess: Session, user_id: int, recipe_id: int) -> bool:
+        return cls.get_by_user_and_recipe(db_sess, user_id, recipe_id) is not None
 
     def get_dict(self) -> "RatingDict":
         return {

@@ -2,7 +2,7 @@ from typing import TypedDict
 
 from bafser import Log, SqlAlchemyBase
 from sqlalchemy import ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, Session
 
 from data import Tables, User
 from data.ingredient import Ingredient
@@ -50,6 +50,18 @@ class RecipeIngredient(SqlAlchemyBase):
         if unit is not None:
             self.unit = unit
         Log.updated(self, actor)
+
+    @classmethod
+    def get_by_recipe(cls, db_sess: Session, recipe_id: int) -> list["RecipeIngredient"]:
+        return list(db_sess.query(cls).filter_by(recipe_id=recipe_id).all())
+
+    @classmethod
+    def get_by_recipe_and_ingredient(cls, db_sess: Session, recipe_id: int, ingredient_id: int) -> "RecipeIngredient | None":
+        return db_sess.query(cls).filter_by(recipe_id=recipe_id, ingredient_id=ingredient_id).first()
+
+    @classmethod
+    def exists(cls, db_sess: Session, recipe_id: int, ingredient_id: int) -> bool:
+        return cls.get_by_recipe_and_ingredient(db_sess, recipe_id, ingredient_id) is not None
 
     def get_dict(self) -> "RecipeIngredientDict":
         return {

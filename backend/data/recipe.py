@@ -17,6 +17,9 @@ class RecipeStatus(enum.Enum):
     DELETED = "deleted"
 
 
+type TRecipeStatus = Literal["draft", "published", "deleted"]
+
+
 class Recipe(SqlAlchemyBase, ObjMixin):
     __tablename__ = Tables.Recipe
 
@@ -34,6 +37,7 @@ class Recipe(SqlAlchemyBase, ObjMixin):
     vote_count: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(init=False, default=get_datetime_now)
     status: Mapped[RecipeStatus] = mapped_column(default="draft")
+    published_at: Mapped[datetime | None] = mapped_column(default=None)
 
     author: Mapped[User] = relationship(foreign_keys=[author_id], lazy="joined", init=False)
     category: Mapped[RecipeCategory] = relationship(foreign_keys=[category_id], lazy="joined", init=False)
@@ -53,6 +57,8 @@ class Recipe(SqlAlchemyBase, ObjMixin):
         difficulty: int,
         author: User,
         category_id: int,
+        status: RecipeStatus = RecipeStatus.DRAFT,
+        main_image_id: int | None = None,
         *,
         creator: User | None = None,
     ):
@@ -113,6 +119,7 @@ class Recipe(SqlAlchemyBase, ObjMixin):
             "vote_count": self.vote_count,
             "created_at": self.created_at.isoformat(),
             "status": self.status.value,
+            "published_at": self.published_at.isoformat() if self.published_at else None,
             "category": self.category.name,
             "main_image": self.main_image.get_path() if self.main_image else None,
         }
@@ -129,6 +136,7 @@ class RecipeDict(TypedDict):
     rating: float
     vote_count: int
     created_at: str
-    status: Literal["draft", "published", "deleted"]
+    status: TRecipeStatus
+    published_at: str | None
     category: str
     main_image: str | None

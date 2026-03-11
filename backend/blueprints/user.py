@@ -3,7 +3,7 @@ from flask import Blueprint
 
 from data.user import User, UserDict
 
-bp = Blueprint("auth", __name__)
+bp = Blueprint("user", __name__)
 
 
 @bp.route("/api/user")
