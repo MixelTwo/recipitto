@@ -11,8 +11,8 @@ from data.recipe import Recipe
 class Rating(SqlAlchemyBase):
     __tablename__ = Tables.Rating
 
-    user_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.User}.id"), primary_key=True)
-    recipe_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.Recipe}.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.User}.id", ondelete="CASCADE"), primary_key=True)
+    recipe_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.Recipe}.id", ondelete="CASCADE"), primary_key=True)
     rating: Mapped[int]  # 1-5
 
     user: Mapped[User] = relationship(foreign_keys=[user_id], init=False)
@@ -57,6 +57,17 @@ class Rating(SqlAlchemyBase):
             dist_count = db_sess.query(func.count(cls.rating)).filter_by(recipe_id=recipe_id, rating=i).scalar()
             distribution[str(i)] = dist_count
         return avg, count, distribution
+
+    @classmethod
+    def recalculate_recipe_stats(cls, recipe_id: int, *, db_sess: Session | None = None) -> None:
+        """Update Recipe.rating and Recipe.vote_count based on current ratings."""
+        recipe = Recipe.get2(recipe_id, db_sess=db_sess)
+        if not recipe:
+            return
+        avg, count, _ = cls.get_stats(recipe_id, db_sess=db_sess)
+        recipe.rating = avg
+        recipe.vote_count = count
+        recipe.db_sess.commit()
 
     @classmethod
     def get_by_user_and_recipe(cls, user_id: int, recipe_id: int, *, db_sess: Session | None = None) -> "Rating | None":

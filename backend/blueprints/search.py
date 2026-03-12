@@ -2,7 +2,7 @@ from typing import TypedDict
 
 from bafser import doc_api, use_db_sess
 from flask import Blueprint, request
-from sqlalchemy import func
+from sqlalchemy import distinct, func
 from sqlalchemy.orm import Session
 
 from data.rating import Rating
@@ -79,15 +79,21 @@ def search_recipes(db_sess: Session) -> SearchRecipesResponse:
     # Filter by ingredients (include)
     if ingredients_include:
         # Recipes that contain ALL of these ingredients
-        for ing_id in ingredients_include:
-            subq = db_sess.query(RecipeIngredient.recipe_id).filter_by(ingredient_id=ing_id)
-            q = q.filter(Recipe.id.in_(subq))
+        ing_ids = [int(i) for i in ingredients_include]
+        subq = (
+            db_sess.query(RecipeIngredient.recipe_id)
+            .filter(RecipeIngredient.ingredient_id.in_(ing_ids))
+            .group_by(RecipeIngredient.recipe_id)
+            .having(func.count(distinct(RecipeIngredient.ingredient_id)) == len(ing_ids))
+            .subquery()
+        )
+        q = q.join(subq, Recipe.id == subq.c.recipe_id)
 
     # Filter by ingredients (exclude)
     if ingredients_exclude:
-        for ing_id in ingredients_exclude:
-            subq = db_sess.query(RecipeIngredient.recipe_id).filter_by(ingredient_id=ing_id)
-            q = q.filter(~Recipe.id.in_(subq))
+        ing_ids = [int(i) for i in ingredients_exclude]
+        subq = db_sess.query(RecipeIngredient.recipe_id).filter(RecipeIngredient.ingredient_id.in_(ing_ids))
+        q = q.filter(~Recipe.id.in_(subq))
 
     # Sorting
     if sort_by == "rating":

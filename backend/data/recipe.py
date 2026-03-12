@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Literal, TypedDict
 
 from bafser import Image, Log, ObjMixin, SqlAlchemyBase, get_datetime_now
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from data import Tables, User
@@ -22,6 +22,12 @@ type TRecipeStatus = Literal["draft", "published", "deleted"]
 
 class Recipe(SqlAlchemyBase, ObjMixin):
     __tablename__ = Tables.Recipe
+    __table_args__ = (
+        Index("idx_recipe_status", "status"),
+        Index("idx_recipe_category_id", "category_id"),
+        Index("idx_recipe_author_id", "author_id"),
+        Index("idx_recipe_title_normalized", "title_normalized"),
+    )
 
     title: Mapped[str] = mapped_column(String(128))
     title_normalized: Mapped[str] = mapped_column(String(128), init=False)
@@ -29,9 +35,9 @@ class Recipe(SqlAlchemyBase, ObjMixin):
     active_time: Mapped[int]  # minutes
     total_time: Mapped[int]  # minutes
     difficulty: Mapped[int]  # 1-5
-    author_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.User}.id"))
-    category_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.RecipeCategory}.id"))
-    main_image_id: Mapped[int | None] = mapped_column(ForeignKey(f"{Tables.Image}.id"), default=None)
+    author_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.User}.id", ondelete="RESTRICT"))
+    category_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.RecipeCategory}.id", ondelete="RESTRICT"))
+    main_image_id: Mapped[int | None] = mapped_column(ForeignKey(f"{Tables.Image}.id", ondelete="SET NULL"), default=None)
 
     rating: Mapped[float] = mapped_column(default=0.0)
     vote_count: Mapped[int] = mapped_column(default=0)
@@ -73,6 +79,10 @@ class Recipe(SqlAlchemyBase, ObjMixin):
             status=status,
             main_image_id=main_image_id,
         )
+        if status == RecipeStatus.PUBLISHED and obj.published_at is None:
+            from bafser import get_datetime_now
+
+            obj.published_at = get_datetime_now()
         Log.added(obj, creator)
         return obj
 
@@ -89,6 +99,8 @@ class Recipe(SqlAlchemyBase, ObjMixin):
         *,
         actor: User | None = None,
     ):
+        # Track status change for published_at
+        old_status = self.status
         if title is not None:
             self.title = title
         if description is not None:
@@ -105,6 +117,11 @@ class Recipe(SqlAlchemyBase, ObjMixin):
             self.main_image_id = main_image_id
         if status is not None:
             self.status = status
+            # Update published_at based on status change
+            if self.status == RecipeStatus.PUBLISHED and self.published_at is None:
+                self.published_at = get_datetime_now()
+            elif self.status in (RecipeStatus.DRAFT, RecipeStatus.DELETED) and old_status == RecipeStatus.PUBLISHED:
+                self.published_at = None
 
         Log.updated(self, actor)
 

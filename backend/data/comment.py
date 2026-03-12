@@ -2,8 +2,8 @@ from datetime import datetime
 from typing import TypedDict
 
 from bafser import Log, ObjMixin, SqlAlchemyBase, get_datetime_now
-from sqlalchemy import ForeignKey, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship, Session
+from sqlalchemy import ForeignKey, Index, Text
+from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
 from data import Tables, User
 from data.recipe import Recipe
@@ -11,11 +11,16 @@ from data.recipe import Recipe
 
 class Comment(SqlAlchemyBase, ObjMixin):
     __tablename__ = Tables.Comment
+    __table_args__ = (
+        Index("idx_comment_recipe_id", "recipe_id"),
+        Index("idx_comment_user_id", "user_id"),
+    )
 
-    user_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.User}.id"))
-    recipe_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.Recipe}.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.User}.id", ondelete="CASCADE"))
+    recipe_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.Recipe}.id", ondelete="CASCADE"))
     text: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(init=False, default=get_datetime_now)
+    updated_at: Mapped[datetime] = mapped_column(init=False, default=get_datetime_now, onupdate=get_datetime_now)
 
     user: Mapped[User] = relationship(foreign_keys=[user_id], init=False)
     recipe: Mapped[Recipe] = relationship(foreign_keys=[recipe_id], init=False)

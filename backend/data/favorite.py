@@ -12,8 +12,8 @@ from data.recipe import Recipe
 class Favorite(SqlAlchemyBase):
     __tablename__ = Tables.Favorite
 
-    user_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.User}.id"), primary_key=True)
-    recipe_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.Recipe}.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.User}.id", ondelete="CASCADE"), primary_key=True)
+    recipe_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.Recipe}.id", ondelete="CASCADE"), primary_key=True)
     added_at: Mapped[datetime] = mapped_column(init=False, default=get_datetime_now)
 
     user: Mapped[User] = relationship(foreign_keys=[user_id], init=False)

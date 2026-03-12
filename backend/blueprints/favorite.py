@@ -1,7 +1,8 @@
 from typing import TypedDict
 
-from bafser import doc_api, jsonify_list, protected_route, response_msg, abort_if_none
+from bafser import abort_if_none, doc_api, jsonify_list, protected_route, response_msg, use_db_sess
 from flask import Blueprint, Response
+from sqlalchemy.orm import Session
 
 from data._operations import Operations
 from data.favorite import Favorite, FavoriteDict
@@ -39,14 +40,20 @@ def check_favorite(recipe_id: int) -> FavoriteCheckDict | Response:
 @bp.post("/api/recipes/<int:recipe_id>/favorite")
 @doc_api(res=FavoriteDict, desc="Add recipe to favorites")
 @protected_route(perms=Operations.favorite_create)
-def add_favorite(recipe_id: int):
+@use_db_sess
+def add_favorite(db_sess: Session, recipe_id: int):
     abort_if_none(Recipe.get2(recipe_id), "recipe")
-    if Favorite.exists(User.current.id, recipe_id):
+    from sqlalchemy.exc import IntegrityError
+
+    try:
+        favorite = Favorite.new(
+            user_id=User.current.id,
+            recipe_id=recipe_id,
+        )
+        db_sess.commit()
+    except IntegrityError:
+        db_sess.rollback()
         return response_msg("Already in favorites", 400)
-    favorite = Favorite.new(
-        user_id=User.current.id,
-        recipe_id=recipe_id,
-    )
     return favorite.get_dict()
 
 
