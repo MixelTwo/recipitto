@@ -2,7 +2,7 @@ from typing import TypedDict
 
 from bafser import Image, Log, ObjMixin, SqlAlchemyBase
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship, Session
+from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
 from data import Tables, User
 from data.recipe import Recipe

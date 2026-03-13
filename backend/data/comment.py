@@ -19,8 +19,8 @@ class Comment(SqlAlchemyBase, ObjMixin):
     user_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.User}.id", ondelete="CASCADE"))
     recipe_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.Recipe}.id", ondelete="CASCADE"))
     text: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(init=False, default=get_datetime_now)
-    updated_at: Mapped[datetime] = mapped_column(init=False, default=get_datetime_now, onupdate=get_datetime_now)
+    created_at: Mapped[datetime] = mapped_column(init=False, default_factory=get_datetime_now)
+    updated_at: Mapped[datetime] = mapped_column(init=False, default_factory=get_datetime_now, onupdate=get_datetime_now)
 
     user: Mapped[User] = relationship(foreign_keys=[user_id], init=False)
     recipe: Mapped[Recipe] = relationship(foreign_keys=[recipe_id], init=False)

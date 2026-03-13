@@ -1,0 +1,117 @@
+"""
+Integration tests for ingredient_category blueprint.
+"""
+from data.ingredient_category import IngredientCategory
+from data.user import User
+from data._roles import Roles
+from bafser import UserBase
+
+
+class TestIngredientCategoryEndpoints:
+    """Test ingredient category CRUD endpoints."""
+
+    def test_list_categories(self, client, db_sess):
+        """GET /api/ingredient-categories returns list."""
+        # Create a user as creator
+        fake_creator = UserBase.get_fake_system()
+        creator = User.new(
+            creator=fake_creator,
+            login="test_creator1",
+            password="pass",
+            name="Test Creator",
+            roles=[Roles.user],
+            db_sess=db_sess
+        )
+        # User.new already commits
+        category = IngredientCategory.new(name="Vegetables", creator=creator)
+        db_sess.add(category)
+        db_sess.commit()
+
+        response = client.get("/api/ingredient-categories")
+        assert response.status_code == 200
+        data = response.get_json()
+        assert isinstance(data, list)
+        assert len(data) >= 1
+        found = next((c for c in data if c["id"] == category.id), None)
+        assert found is not None
+        assert found["name"] == "Vegetables"
+
+    def test_get_category(self, client, db_sess):
+        fake_creator = UserBase.get_fake_system()
+        creator = User.new(
+            creator=fake_creator,
+            login="test_creator2",
+            password="pass",
+            name="Test Creator",
+            roles=[Roles.user],
+            db_sess=db_sess
+        )
+        category = IngredientCategory.new(name="Fruits", creator=creator)
+        db_sess.add(category)
+        db_sess.commit()
+
+        response = client.get(f"/api/ingredient-categories/{category.id}")
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["id"] == category.id
+        assert data["name"] == "Fruits"
+
+    def test_create_category_as_user(self, authenticated_client, db_sess):
+        """POST /api/ingredient-categories with user permissions."""
+        response = authenticated_client.post("/api/ingredient-categories", json={
+            "name": "Grains",
+        })
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["name"] == "Grains"
+        assert data["id"] is not None
+
+        # Verify in database
+        created = IngredientCategory.get2(data["id"])
+        assert created.name == "Grains"
+
+    def test_update_category_as_user(self, authenticated_client, db_sess):
+        fake_creator = UserBase.get_fake_system()
+        creator = User.new(
+            creator=fake_creator,
+            login="test_creator3",
+            password="pass",
+            name="Test Creator",
+            roles=[Roles.user],
+            db_sess=db_sess
+        )
+        category = IngredientCategory.new(name="Old Name", creator=creator)
+        db_sess.add(category)
+        db_sess.commit()
+
+        response = authenticated_client.patch(f"/api/ingredient-categories/{category.id}", json={
+            "name": "New Name",
+        })
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["name"] == "New Name"
+
+        # Verify update
+        updated = IngredientCategory.get2(category.id)
+        assert updated.name == "New Name"
+
+    def test_delete_category_as_user(self, authenticated_client, db_sess):
+        fake_creator = UserBase.get_fake_system()
+        creator = User.new(
+            creator=fake_creator,
+            login="test_creator4",
+            password="pass",
+            name="Test Creator",
+            roles=[Roles.user],
+            db_sess=db_sess
+        )
+        category = IngredientCategory.new(name="To Delete", creator=creator)
+        db_sess.add(category)
+        db_sess.commit()
+
+        response = authenticated_client.delete(f"/api/ingredient-categories/{category.id}")
+        assert response.status_code == 204
+
+        # Verify soft delete
+        deleted = IngredientCategory.get2(category.id, includeDeleted=True)
+        assert deleted.deleted is True

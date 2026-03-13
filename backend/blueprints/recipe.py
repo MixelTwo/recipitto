@@ -1,4 +1,4 @@
-from bafser import JsonObj, JsonOpt, Undefined, doc_api, jsonify_list, protected_route, response_msg, abort_if_none
+from bafser import JsonObj, JsonOpt, Undefined, abort_if_none, doc_api, jsonify_list, protected_route, response_msg
 from flask import Blueprint
 
 from data._operations import Operations

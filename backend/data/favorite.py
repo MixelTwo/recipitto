@@ -14,7 +14,7 @@ class Favorite(SqlAlchemyBase):
 
     user_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.User}.id", ondelete="CASCADE"), primary_key=True)
     recipe_id: Mapped[int] = mapped_column(ForeignKey(f"{Tables.Recipe}.id", ondelete="CASCADE"), primary_key=True)
-    added_at: Mapped[datetime] = mapped_column(init=False, default=get_datetime_now)
+    added_at: Mapped[datetime] = mapped_column(init=False, default_factory=get_datetime_now)
 
     user: Mapped[User] = relationship(foreign_keys=[user_id], init=False)
     recipe: Mapped[Recipe] = relationship(foreign_keys=[recipe_id], init=False)

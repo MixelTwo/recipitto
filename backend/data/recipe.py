@@ -41,7 +41,7 @@ class Recipe(SqlAlchemyBase, ObjMixin):
 
     rating: Mapped[float] = mapped_column(default=0.0)
     vote_count: Mapped[int] = mapped_column(default=0)
-    created_at: Mapped[datetime] = mapped_column(init=False, default=get_datetime_now)
+    created_at: Mapped[datetime] = mapped_column(init=False, default_factory=get_datetime_now)
     status: Mapped[RecipeStatus] = mapped_column(default="draft")
     published_at: Mapped[datetime | None] = mapped_column(default=None)
 

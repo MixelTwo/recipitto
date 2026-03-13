@@ -2,11 +2,9 @@ from ._operations import Operations
 from ._roles import Roles
 from ._tables import Tables
 from .user import User
-
-from .ingredient_category import IngredientCategory
-
 from .comment import Comment
 from .favorite import Favorite
+from .ingredient_category import IngredientCategory
 from .ingredient import Ingredient
 from .rating import Rating
 from .recipe import Recipe
@@ -20,8 +18,8 @@ __all__ = [
     "Roles",
     "Tables",
     "User",
-    "Ingredient",
     "IngredientCategory",
+    "Ingredient",
     "RecipeCategory",
     "Recipe",
     "RecipeIngredient",

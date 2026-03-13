@@ -9,7 +9,7 @@ from data import Tables
 
 
 class User(UserBase):
-    reg_date: Mapped[datetime] = mapped_column(init=False, default=get_datetime_now)
+    reg_date: Mapped[datetime] = mapped_column(init=False, default_factory=get_datetime_now)
     avatar_id: Mapped[int | None] = mapped_column(ForeignKey(f"{Tables.Image}.id"), default=None)
 
     avatar: Mapped[Image | None] = relationship(init=False, foreign_keys=[avatar_id])
