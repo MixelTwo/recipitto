@@ -43,6 +43,15 @@ export function randomColor()
 {
 	return hslColor(randomInt(0, 360), randomInt(80, 100), randomInt(40, 80));
 }
+export function randomStr(len: number): string
+{
+	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	let result = "";
+	for (let i = 0; i < len; i++)
+		result += chars.charAt(randomInt(chars.length));
+	return result;
+}
+
 
 
 export function addButtonListener(id: string, f: (e: MouseEvent, btn: HTMLButtonElement) => void)
