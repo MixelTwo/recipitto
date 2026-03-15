@@ -1,4 +1,4 @@
-import { FetchError, randomStr, state, type State } from "../littleLib.js"
+import { FetchError, onPageCleanup, randomStr, state, type State } from "../littleLib.js"
 
 export type Query<R, A extends any[]> = Query_base<R, A> & (Query_success<R> | Query_error | Query_loading<R> | Query_idle)
 export type QueryState<R, A extends any[]> = State<Readonly<Query<R, A>>>;
@@ -65,15 +65,29 @@ interface Query_loading<R>
 
 class QueryCacheCls
 {
-	private dict: Record<string, { onChange: ((v: any, err: ApiError | null, qid: string) => void)[], v: any, err: ApiError | null }> = {};
+	private dict: Record<string, { onChange: ((v: any, err: ApiError | null, qid: string) => void)[], v: any, err: ApiError | null, updAt: Date | null }> = {};
+	constructor()
+	{
+		onPageCleanup(() =>
+		{
+			for (const key in this.dict)
+			{
+				if (!Object.hasOwn(this.dict, key)) continue;
+				const v = this.dict[key]!;
+				v.onChange = [];
+			}
+		});
+	}
 	private _get(key: string)
 	{
-		if (!(key in this.dict)) this.dict[key] = { onChange: [], v: undefined, err: null };
+		if (!(key in this.dict)) this.dict[key] = { onChange: [], v: undefined, err: null, updAt: null };
 		return this.dict[key]!;
 	}
-	private _set(key: string, value: any, err: ApiError | null = null, qid: string = "")
+	private _set(key: string, value: any, err: ApiError | null = null, qid: string = "", updAt: Date | null = null)
 	{
 		const v = this._get(key);
+		if (v.updAt && updAt && v.updAt > updAt) return;
+		v.updAt = updAt;
 		v.v = value;
 		v.err = err;
 		v.onChange.forEach(fn => fn(value, err, qid));
@@ -82,17 +96,18 @@ class QueryCacheCls
 	{
 		return this.dict[key]?.v;
 	}
-	public getFull<T>(key: string): { v: T | undefined, err: ApiError | null }
+	public getFull<T>(key: string): { v: T | undefined, err: ApiError | null, updAt: Date | null }
 	{
-		return { v: this.dict[key]?.v, err: this.dict[key]?.err ?? null };
+		const v = this.dict[key];
+		return { v: v?.v, err: v?.err ?? null, updAt: v?.updAt ?? null };
 	}
 	public set(key: string, value: any)
 	{
 		this._set(key, value);
 	}
-	public setFull(key: string, value: any, err: ApiError | null, qid: string)
+	public setFull(key: string, value: any, err: ApiError | null, qid: string, updAt: Date)
 	{
-		this._set(key, value, err, qid);
+		this._set(key, value, err, qid, updAt);
 	}
 	public upd<T>(key: string, updater: (v: T | undefined) => void)
 	{
@@ -129,6 +144,7 @@ export function query<R, A extends any[]>(name: string | null, fetch: (...args: 
 			q.error = null;
 			s.notifyChange(q, pastState);
 			pastState = { ...q };
+			const updAt = new Date();
 			try
 			{
 				const data = await fetch(...args);
@@ -144,7 +160,16 @@ export function query<R, A extends any[]>(name: string | null, fetch: (...args: 
 					exc: err,
 				}
 			}
-			if (name) QueryCache.setFull(name, q.data, q.error, queryId);
+			if (name)
+			{
+				QueryCache.setFull(name, q.data, q.error, queryId, updAt);
+				const { v, err, updAt: lastUpdAt } = QueryCache.getFull<R>(name);
+				if (!err && v && (!lastUpdAt || lastUpdAt > updAt))
+				{
+					q.state = "success";
+					q.data = v;
+				}
+			}
 			s.notifyChange(q, pastState);
 			return q.data;
 		},

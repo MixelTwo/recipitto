@@ -1,4 +1,4 @@
-import { trimStart } from "./littleLib.js";
+import { _onPageCleanup, trimStart } from "./littleLib.js";
 import render_index from "./pages/index.js";
 import render_item from "./pages/item.js";
 
@@ -42,6 +42,8 @@ function _toPage<T extends keyof TPages>(
 	pushState: boolean,
 )
 {
+	_onPageCleanup.forEach(fn => fn());
+	_onPageCleanup.splice(0, _onPageCleanup.length);
 	const entry = pages[page] as TPages[T];
 	const render = entry.render as (args: RenderArgs<T>) => void;
 	const path = entry.path.replaceAll(/<.+>/g, v => `${(args as any)?.[v.slice(1, -1)]}`);

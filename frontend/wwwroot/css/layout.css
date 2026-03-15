@@ -46,3 +46,11 @@
 	width: 100%;
 	max-width: 800px;
 }
+
+.layout__error {
+	margin: 1em;
+	padding: 0.5em;
+	font-size: 1.5em;
+	background-color: var(--accent);
+	border-radius: 0.25em;
+}

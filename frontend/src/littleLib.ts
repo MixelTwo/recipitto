@@ -367,7 +367,11 @@ export function injectStyles<T extends Record<string, CSSStyles>>(styles: T): Re
 }
 
 type StateListener<T> = (v: T, pv: T) => void;
-
+export let _onPageCleanup: (() => void)[] = [];
+export function onPageCleanup(fn: () => void)
+{
+	_onPageCleanup.push(fn);
+}
 export class State<T>
 {
 	private value: T;
@@ -382,6 +386,7 @@ export class State<T>
 	constructor(value: T)
 	{
 		this.value = value;
+		onPageCleanup(() => this.listeners = []);
 	}
 	public notifyChange(value: T, pv: T)
 	{

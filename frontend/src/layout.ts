@@ -1,9 +1,9 @@
 import { query_login, query_logout, query_user } from "./api/user.js";
 import Spinner from "./cmps/spinner.js";
-import { $, A, Button, Div, If, SetContent, Span, type ElChildren } from "./littleLib.js";
+import { $, A, Button, Div, If, initEl, SetContent, Span, type ElChildren } from "./littleLib.js";
 import { toPage } from "./main.js";
 
-export default function Layout(children: ElChildren)
+export default function Layout(children: ElChildren, permission?: string)
 {
 	const user = query_user();
 	const login = query_login();
@@ -31,6 +31,16 @@ export default function Layout(children: ElChildren)
 				])
 			]),
 		]),
-		Div("layout__body", children),
+		Div("layout__body", !permission ? children : [
+			$(user, v => v.isLoading && Spinner()),
+			If($(user, v => v.data), [
+				If($(user, v => v.data?.operations.includes(permission)),
+					children, [
+					initEl("h2", "layout__error", "У вас нет прав для просмотра данной страницы"),
+				]),
+			], [
+				initEl("h2", "layout__error", "Вы не авторизованы"),
+			]),
+		]),
 	]))
 }

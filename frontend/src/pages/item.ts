@@ -1,3 +1,4 @@
+import { UserOperations } from "../api/user.js";
 import Example from "../cmps/example.js";
 import Layout from "../layout.js";
 import { H1 } from "../littleLib.js";
@@ -9,5 +10,5 @@ export default function render({ id }: { id: string })
 	Layout([
 		H1([], `Item ${id}`),
 		Example(true),
-	]);
+	], UserOperations.recipe_create);
 }
