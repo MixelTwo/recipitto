@@ -24,10 +24,22 @@
 }
 
 .layout__links {
+	flex-grow: 1;
 	padding: 1em;
 	display: flex;
 	align-items: center;
 	gap: 1em;
+}
+
+.layout__user {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+}
+
+.layout__user button {
+	padding: 0.25em 0.5em;
+	border: 2px solid var(--primary);
 }
 
 .layout__body {

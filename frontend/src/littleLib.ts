@@ -141,7 +141,23 @@ export function numNoun(num: number, one: string, two: string, five: string)
 	if (num >= 2 && num <= 4) return two;
 	return five;
 }
+export function trimEnd(str: string, ...chs: string[]): string
+{
+	if (!chs.length) return str.trimEnd();
+	const pattern = new RegExp(`(?:${chs.map(escapeRegExp).join("|")})+$`);
+	return str.replace(pattern, "");
+}
 
+export function trimStart(str: string, ...chs: string[]): string
+{
+	if (!chs.length) return str.trimStart();
+	const pattern = new RegExp(`^(?:${chs.map(escapeRegExp).join("|")})+`);
+	return str.replace(pattern, "");
+}
+export function escapeRegExp(string: string)
+{
+	return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 
 export function SetContent(parent: HTMLElement, children: ElChildren)
@@ -153,6 +169,8 @@ export function AppendContent(parent: HTMLElement, children: ElChildren)
 {
 	if (children instanceof Array)
 		children.forEach(ch => AppendContent(parent, ch));
+	else if (children instanceof State)
+		If(children, () => children.v).forEach(ch => AppendContent(parent, ch));
 	else if (children)
 		parent.append(children);
 }
@@ -212,11 +230,12 @@ export function A(classes?: ElClasses, children?: ElChildren, href?: string, cli
 }
 
 export type CSSStyles = Partial<Record<keyof CSSStyleDeclaration, string | number>>;
-export type CSSStylesState = Partial<Record<keyof CSSStyleDeclaration, string | number | _State<string | number>>>;
+export type CSSStylesState = Partial<Record<keyof CSSStyleDeclaration, string | number | State<string | number>>>;
 type ElClassSimple = string | undefined | null | false | CSSStyles;
-type ElClass = ElClassSimple | CSSStylesState | _State<ElClassSimple>;
+type ElClass = ElClassSimple | CSSStylesState | State<ElClassSimple>;
 export type ElClasses = ElClass[] | ElClass;
-export type ElChildren = Node | string | undefined | null | false | ElChildren[];
+type ElChild = Node | string | undefined | null | false | ElChild[];
+export type ElChildren = ElChild | State<ElChild> | (ElChild | State<ElChild>)[];
 export function initEl<K extends keyof HTMLElementTagNameMap>(tagName: K, classes?: ElClasses, children?: ElChildren, onCreate?: (el: HTMLElementTagNameMap[K]) => void)
 {
 	const el = document.createElement(tagName);
@@ -255,7 +274,7 @@ export function initEl<K extends keyof HTMLElementTagNameMap>(tagName: K, classe
 				}
 				else
 				{
-					el.style[key] = styleValuetoString(k, v! as any) as any;
+					el.style[key] = styleValuetoString(k, v!) as any;
 				}
 			})
 		}
@@ -269,6 +288,8 @@ export function initEl<K extends keyof HTMLElementTagNameMap>(tagName: K, classe
 		{
 			if (children instanceof Array)
 				children.forEach(appendChildren);
+			else if (children instanceof State)
+				If(children, () => children.v).forEach(appendChildren);
 			else if (children)
 				el.append(children);
 		}
@@ -337,23 +358,27 @@ export function injectStyles<T extends Record<string, CSSStyles>>(styles: T): Re
 }
 
 type StateListener<T> = (v: T, pv: T) => void;
-type _State<T> = Omit<State<T>, "listeners">
 
 export class State<T>
 {
 	private value: T;
-	private listeners: StateListener<T>[] = [];
+	private listeners: StateListener<any>[] = [];
 	public get v() { return this.value; }
 	public set v(value: T)
 	{
 		const pv = this.value;
 		this.value = value;
-		this.listeners.forEach(f => f(value, pv));
+		this.notifyChange(value, pv);
 	}
 	constructor(value: T)
 	{
 		this.value = value;
 	}
+	public notifyChange(value: T, pv: T)
+	{
+		this.listeners.forEach(f => f(value, pv));
+	}
+
 	public addListener(listener: StateListener<T>)
 	{
 		this.listeners.push(listener);
@@ -369,6 +394,7 @@ export class State<T>
 		this.addListener(v => cond(v) && fn());
 	}
 }
+export const $ = state;
 export function state<T>(v: T): State<T>
 export function state<T, K>(v: State<T>, transformer: (v: T) => K): State<K>
 export function state<T, K>(v: State<T> | T, transformer?: (v: T) => K): State<K>
@@ -390,15 +416,29 @@ export function elRef<T extends HTMLElement>()
 	}
 	return ref;
 }
-export function If<T>(state: State<T>, t: ElChildren, f: ElChildren): Node[]
+export function If<T>(state: State<T>, t: ElChildren | (() => ElChildren), f?: ElChildren | (() => ElChildren)): Node[]
 {
-	const nodesT = childrenToNodes(t);
-	const nodesF = childrenToNodes(f);
-	let els = state.v ? nodesT : nodesF;
-	state.addListener(v =>
+	let _nodesT: Node[];
+	const getNodesT = () =>
 	{
-		const newEls = v ? nodesT : nodesF;
-		if (els == newEls) return;
+		if (typeof t == "function") return childrenToNodes(t());
+		if (!_nodesT) _nodesT = childrenToNodes(t);
+		return _nodesT;
+	};
+	let _nodesF: Node[];
+	const getNodesF = () =>
+	{
+		if (typeof f == "function") return childrenToNodes(f());
+		if (!_nodesF) _nodesF = childrenToNodes(f);
+		return _nodesF;
+	};
+	const nodesT = getNodesT();
+	const nodesF = getNodesF();
+	let els = state.v ? nodesT : nodesF;
+	state.addListener((v, pv) =>
+	{
+		if (!!v == !!pv) return;
+		const newEls = v ? getNodesT() : getNodesF();
 		const pastNode = els[0];
 		const parent = pastNode?.parentNode;
 		if (!parent) return;
@@ -415,6 +455,8 @@ export function If<T>(state: State<T>, t: ElChildren, f: ElChildren): Node[]
 				children.forEach(append);
 			else if (typeof children == "string")
 				nodes.push(document.createTextNode(children));
+			else if (children instanceof State)
+				If(children, () => children.v).forEach(n => nodes.push(n));
 			else if (children)
 				nodes.push(children);
 		}
@@ -426,10 +468,16 @@ export function If<T>(state: State<T>, t: ElChildren, f: ElChildren): Node[]
 	return els;
 }
 
-export class FetchError extends Error { }
-async function fetchWithJson(method: "GET" | "POST" | "DELETE", input: RequestInfo | URL, body?: any)
+export class FetchError extends Error
 {
-	const res = await fetch(input, {
+	constructor(message: string, public status: number)
+	{
+		super(message)
+	}
+}
+async function fetchWithJson(method: "GET" | "POST" | "DELETE", url: RequestInfo | URL, body?: any)
+{
+	const res = await fetch(url, {
 		method,
 		headers: body === undefined ? {} : {
 			"Content-Type": "application/json"
@@ -437,43 +485,47 @@ async function fetchWithJson(method: "GET" | "POST" | "DELETE", input: RequestIn
 		body: body === undefined ? null : JSON.stringify(body),
 	});
 	if (!res.ok)
-		throw new FetchError((await res.json() as { msg: string }).msg)
+	{
+		let msg = "";
+		try { msg = (await res.json() as { msg: string }).msg; } catch { }
+		throw new FetchError(msg, res.status)
+	}
 	return res;
 }
 
-export function fetchGet(input: RequestInfo | URL)
+export function fetchGet(url: RequestInfo | URL)
 {
-	return fetchWithJson("GET", input);
+	return fetchWithJson("GET", url);
 }
 
-export function fetchPost(input: RequestInfo | URL, body?: any)
+export function fetchPost(url: RequestInfo | URL, body?: any)
 {
-	return fetchWithJson("POST", input, body);
+	return fetchWithJson("POST", url, body);
 }
 
-export function fetchDelete(input: RequestInfo | URL, body?: any)
+export function fetchDelete(url: RequestInfo | URL, body?: any)
 {
-	return fetchWithJson("DELETE", input, body);
+	return fetchWithJson("DELETE", url, body);
 }
 
-async function fetchJson<T>(method: "GET" | "POST" | "DELETE", input: RequestInfo | URL, body?: any)
+async function fetchJson<T>(method: "GET" | "POST" | "DELETE", url: RequestInfo | URL, body?: any)
 {
-	const res = await fetchWithJson(method, input, body);
+	const res = await fetchWithJson(method, url, body);
 	const data = await res.json();
 	return data as T;
 }
 
-export function fetchJsonGet<T>(input: RequestInfo | URL)
+export function fetchJsonGet<T>(url: RequestInfo | URL)
 {
-	return fetchJson<T>("GET", input);
+	return fetchJson<T>("GET", url);
 }
 
-export function fetchJsonPost<T>(input: RequestInfo | URL, body?: any)
+export function fetchJsonPost<T>(url: RequestInfo | URL, body?: any)
 {
-	return fetchJson<T>("POST", input, body);
+	return fetchJson<T>("POST", url, body);
 }
 
-export function fetchJsonDelete<T>(input: RequestInfo | URL, body?: any)
+export function fetchJsonDelete<T>(url: RequestInfo | URL, body?: any)
 {
-	return fetchJson<T>("DELETE", input, body);
+	return fetchJson<T>("DELETE", url, body);
 }

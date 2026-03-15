@@ -1,16 +1,31 @@
-import { A, Div, SetContent, type ElChildren } from "./littleLib.js";
+import { query_login, query_logout, query_user } from "./api/user.js";
+import { $, A, Button, Div, If, SetContent, Span, type ElChildren } from "./littleLib.js";
 import { toPage } from "./main.js";
 
 export default function Layout(children: ElChildren)
 {
+	const user = query_user();
+	const login = query_login();
+	const logout = query_logout();
 	SetContent(document.body, Div("layout", [
 		Div("layout__header", [
 			Div([], [
-				A("layout__logo", "logo", "/", () => toPage("index")),
+				A("layout__logo", "Logo", "/", () => toPage("index")),
 				Div("layout__links", [
 					A([], "to item 1", "/item/1", () => toPage("item", { id: "1" })),
 					A([], "to item 2", "/item/2", () => toPage("item", { id: "2" })),
 				]),
+				Div("layout__user", [
+					If($(user, v => v.error), [
+						Span([], user.v?.error?.msg),
+					]),
+					If($(user, v => v.data), [
+						Span([], $(user, v => v.data?.name)),
+						Button([], "Выйти", () => logout.v.fetch()),
+					], [
+						Button([], "Войти", () => login.v.fetch("123", "123")),
+					])
+				])
 			]),
 		]),
 		Div("layout__body", children),

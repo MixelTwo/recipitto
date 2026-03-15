@@ -1,9 +1,8 @@
+import { trimStart } from "./littleLib.js";
 import render_index from "./pages/index.js";
 import render_item from "./pages/item.js";
 
-export const GlobalState = {
-
-};
+export const GlobalState = {};
 
 type PageConfig<Args extends Record<string, any>> = {
 	render: (args: Args) => void;
@@ -11,6 +10,7 @@ type PageConfig<Args extends Record<string, any>> = {
 };
 const createPages = <T extends Record<string, PageConfig<any>>>(p: T) => p;
 
+const HASHNAV = true;
 const pages = createPages({
 	"index": { render: render_index, path: "/" },
 	"item": { render: render_item, path: "/item/<id>" },
@@ -25,7 +25,7 @@ window.addEventListener("popstate", (event) =>
 	else
 		_toPage("index", undefined, false);
 });
-toPageByUrl(location.pathname);
+toPageByUrl(!HASHNAV ? location.pathname : trimStart(location.hash, "#"));
 
 export function toPage<T extends keyof TPages>(
 	page: T,
@@ -45,8 +45,9 @@ function _toPage<T extends keyof TPages>(
 	const entry = pages[page] as TPages[T];
 	const render = entry.render as (args: RenderArgs<T>) => void;
 	const path = entry.path.replaceAll(/<.+>/g, v => `${(args as any)?.[v.slice(1, -1)]}`);
-	if (pushState) window.history.pushState({ page, args }, "", path);
-	else window.history.replaceState({ page, args }, "", path);
+	const fullpath = !HASHNAV ? path : location.pathname + location.search + "#" + path;
+	if (pushState) window.history.pushState({ page, args }, "", fullpath);
+	else window.history.replaceState({ page, args }, "", fullpath);
 	render(args);
 }
 

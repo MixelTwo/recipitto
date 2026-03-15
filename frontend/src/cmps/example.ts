@@ -1,4 +1,4 @@
-import { Button, Div, elRef, injectStyles, Span, state as $, type CSSStyles, If } from "../littleLib.js";
+import { Button, Div, elRef, injectStyles, Span, $, type CSSStyles, If } from "../littleLib.js";
 
 const gstate = { value: 1 };
 
