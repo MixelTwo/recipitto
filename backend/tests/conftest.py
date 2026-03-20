@@ -1,11 +1,18 @@
 """
 Pytest fixtures for Bafser-based Flask application.
 """
-import pytest
-import tempfile
+
 import os
-import sys
+import tempfile
 from datetime import timedelta
+from typing import TYPE_CHECKING, Any, Iterator
+
+import pytest
+
+if TYPE_CHECKING:
+    from flask import Flask
+    from flask.testing import FlaskClient
+    from sqlalchemy.orm import Session
 
 # Patch bafser_config before importing bafser
 import bafser_config
@@ -18,13 +25,14 @@ bafser_config.sql_echo = False
 # db_dev_path will be set via environment variable DBPATH
 # We'll set it in the app fixture
 
-from bafser import create_app, AppConfig, db_session, Role, UserRole
-from data.user import User
-from data._roles import Roles
+from bafser import AppConfig, Role, create_app, db_session
+
 from data._operations import Operations
+from data._roles import Roles
+from data.user import User
 
 # Add missing operations to user role for testing
-if hasattr(Roles, 'ROLES'):
+if hasattr(Roles, "ROLES"):
     user_role = Roles.ROLES.get(Roles.user)
     if user_role:
         ops = user_role.get("operations", [])
@@ -66,7 +74,7 @@ if hasattr(Roles, 'ROLES'):
 
 
 @pytest.fixture(scope="session")
-def app():
+def app() -> Iterator["Flask"]:
     """
     Create a Flask application instance for testing.
     Uses a temporary SQLite database.
@@ -91,23 +99,28 @@ def app():
     db_session.global_init(dev=True)
 
     # Get the engine for later disposal
-    from sqlalchemy.orm import Session
+    from sqlalchemy.orm import Session  # pyright: ignore[reportUnusedImport]
+
     session = db_session.create_session()
     engine = session.bind
     session.close()
 
     # Patch Log._serialize to handle Enum serialization
-    from bafser.data.log import Log
     import datetime
     import enum
-    original_serialize = Log._serialize
-    def patched_serialize(v):
+
+    from bafser.data.log import Log
+
+    original_serialize = Log._serialize  # pyright: ignore[reportPrivateUsage]
+
+    def patched_serialize(v: Any):
         if isinstance(v, datetime.datetime):
             return v.isoformat()
         if isinstance(v, enum.Enum):
             return v.value
         return v
-    Log._serialize = staticmethod(patched_serialize)
+
+    Log._serialize = staticmethod(patched_serialize)  # pyright: ignore[reportPrivateUsage]
 
     # Create default roles and admin user if needed
     with db_session.create_session() as sess:
@@ -121,10 +134,10 @@ def app():
     yield app
 
     # Restore original serialize (optional)
-    Log._serialize = staticmethod(original_serialize)
+    Log._serialize = staticmethod(original_serialize)  # pyright: ignore[reportPrivateUsage]
 
     # Teardown
-    engine.dispose()
+    engine.dispose()  # type: ignore
     os.close(db_fd)
     os.unlink(db_path)
     if "DBPATH" in os.environ:
@@ -132,7 +145,7 @@ def app():
 
 
 @pytest.fixture
-def db_sess(app):
+def db_sess(app: "Flask") -> Iterator["Session"]:
     """
     Provide a database session for each test.
     Automatically rolls back and closes after test.
@@ -140,24 +153,25 @@ def db_sess(app):
     """
     with app.app_context():
         from flask import g
+
         session = db_session.create_session()
         g.db_session = session
         yield session
         session.rollback()
         session.close()
         # Remove to avoid leakage
-        if hasattr(g, 'db_session'):
+        if hasattr(g, "db_session"):
             del g.db_session
 
 
 @pytest.fixture
-def client(app):
+def client(app: "Flask") -> "FlaskClient":
     """Test client."""
     return app.test_client()
 
 
 @pytest.fixture
-def authenticated_client(client, db_sess):
+def authenticated_client(client: "FlaskClient", db_sess: "Session") -> Iterator["FlaskClient"]:
     """
     Authenticated test client with a regular user (role user).
     """
@@ -165,6 +179,7 @@ def authenticated_client(client, db_sess):
     user = User.get_by_login(db_sess, "authuser", includeDeleted=True)
     if not user:
         from bafser import UserBase
+
         fake_creator = UserBase.get_fake_system()
         user = User.new(
             creator=fake_creator,
@@ -172,12 +187,13 @@ def authenticated_client(client, db_sess):
             password="testpass",
             name="Auth User",
             roles=[Roles.user],  # role id for user
-            db_sess=db_sess
+            db_sess=db_sess,
         )
         # User.new already commits
 
     # Generate JWT token
     from bafser import create_access_token
+
     # Debug: print JWT config
     token = create_access_token(user)
     # Set token in client's cookies (Bafser uses cookies)
@@ -192,7 +208,7 @@ def authenticated_client(client, db_sess):
 
 
 @pytest.fixture
-def admin_client(client, db_sess):
+def admin_client(client: "FlaskClient", db_sess: "Session") -> Iterator["FlaskClient"]:
     """
     Authenticated test client with an admin user.
     """
@@ -203,6 +219,7 @@ def admin_client(client, db_sess):
 
     # Generate token
     from bafser import create_access_token
+
     token = create_access_token(admin)
 
     client.set_cookie("access_token_cookie", token)
