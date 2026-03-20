@@ -50,9 +50,9 @@ class TestIngredientCategoryEndpoints:
         assert data["id"] == category.id
         assert data["name"] == "Fruits"
 
-    def test_create_category_as_user(self, authenticated_client: "FlaskClient", db_sess: "Session") -> None:
+    def test_create_category_as_admin(self, admin_client: "FlaskClient", db_sess: "Session") -> None:
         """POST /api/ingredient-categories with user permissions."""
-        response = authenticated_client.post(
+        response = admin_client.post(
             "/api/ingredient-categories",
             json={
                 "name": "Grains",
@@ -68,14 +68,14 @@ class TestIngredientCategoryEndpoints:
         assert created
         assert created.name == "Grains"
 
-    def test_update_category_as_user(self, authenticated_client: "FlaskClient", db_sess: "Session") -> None:
+    def test_update_category_as_admin(self, admin_client: "FlaskClient", db_sess: "Session") -> None:
         fake_creator = UserBase.get_fake_system()
         creator = User.new(creator=fake_creator, login="test_creator3", password="pass", name="Test Creator", roles=[Roles.user], db_sess=db_sess)
         category = IngredientCategory.new(name="Old Name", creator=creator)
         db_sess.add(category)
         db_sess.commit()
 
-        response = authenticated_client.patch(
+        response = admin_client.patch(
             f"/api/ingredient-categories/{category.id}",
             json={
                 "name": "New Name",
@@ -90,14 +90,14 @@ class TestIngredientCategoryEndpoints:
         assert updated
         assert updated.name == "New Name"
 
-    def test_delete_category_as_user(self, authenticated_client: "FlaskClient", db_sess: "Session") -> None:
+    def test_delete_category_as_admin(self, admin_client: "FlaskClient", db_sess: "Session") -> None:
         fake_creator = UserBase.get_fake_system()
         creator = User.new(creator=fake_creator, login="test_creator4", password="pass", name="Test Creator", roles=[Roles.user], db_sess=db_sess)
         category = IngredientCategory.new(name="To Delete", creator=creator)
         db_sess.add(category)
         db_sess.commit()
 
-        response = authenticated_client.delete(f"/api/ingredient-categories/{category.id}")
+        response = admin_client.delete(f"/api/ingredient-categories/{category.id}")
         assert response.status_code == 204
 
         # Verify soft delete

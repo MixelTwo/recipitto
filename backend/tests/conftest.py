@@ -27,50 +27,8 @@ bafser_config.sql_echo = False
 
 from bafser import AppConfig, Role, create_app, db_session
 
-from data._operations import Operations
 from data._roles import Roles
 from data.user import User
-
-# Add missing operations to user role for testing
-if hasattr(Roles, "ROLES"):
-    user_role = Roles.ROLES.get(Roles.user)
-    if user_role:
-        ops = user_role.get("operations", [])
-        # Add missing operations that are needed for testing
-        missing = [
-            Operations.recipe_update,
-            Operations.recipe_delete,
-            Operations.recipe_category_create,
-            Operations.recipe_category_update,
-            Operations.recipe_category_delete,
-            Operations.ingredient_category_create,
-            Operations.ingredient_category_update,
-            Operations.ingredient_category_delete,
-            Operations.ingredient_create,
-            Operations.ingredient_update,
-            Operations.ingredient_delete,
-            Operations.recipe_step_create,
-            Operations.recipe_step_update,
-            Operations.recipe_step_delete,
-            Operations.recipe_ingredient_create,
-            Operations.recipe_ingredient_update,
-            Operations.recipe_ingredient_delete,
-            Operations.recipe_image_create,
-            Operations.recipe_image_delete,
-            Operations.comment_create,
-            Operations.comment_update,
-            Operations.comment_delete,
-            Operations.rating_create,
-            Operations.rating_update,
-            Operations.rating_delete,
-            Operations.favorite_create,
-            Operations.favorite_delete,
-            Operations.search_recipes,
-        ]
-        for op in missing:
-            if op not in ops:
-                ops.append(op)
-        user_role["operations"] = ops
 
 
 @pytest.fixture(scope="session")

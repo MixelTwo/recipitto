@@ -14,6 +14,8 @@ Roles.ROLES = {
         "operations": [
             Operations.recipe_view,
             Operations.recipe_create,
+            Operations.recipe_update,
+            Operations.recipe_delete,
             Operations.recipe_manage_own,
             Operations.recipe_step_view,
             Operations.recipe_step_create,
