@@ -138,20 +138,6 @@ flake8 blueprints data utils
 pyright blueprints data utils
 ```
 
-## Troubleshooting
-
-### "Operation not permitted" errors
-- Ensure the test user has the required permissions. The `conftest.py` patches `Roles.ROLES` to grant all operations to the "user" role.
-
-### Database session errors
-- Use `db_sess` fixture; avoid mixing sessions from different fixtures.
-
-### JWT token expiration
-- Tokens are set with a long expiration for tests. If you encounter 401 errors, check that the token is being sent correctly (the fixture sets it in cookies).
-
-### Coverage missing lines
-- Some lines may be unreachable due to defensive coding (e.g., `JsonObj` validation preventing `ValueError`). These are acceptable as dead code.
-
 ## Further Reading
 
 - [pytest documentation](https://docs.pytest.org/)

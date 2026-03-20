@@ -1,4 +1,5 @@
 storage/
+bafser_copy/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

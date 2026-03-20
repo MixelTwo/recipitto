@@ -39,7 +39,6 @@ def app() -> Iterator["Flask"]:
     """
     # Create temporary database file
     db_fd, db_path = tempfile.mkstemp(suffix=".db")
-    os.environ["DBPATH"] = db_path
 
     # Ensure bafser_config uses this path for dev
     bafser_config.db_dev_path = db_path
