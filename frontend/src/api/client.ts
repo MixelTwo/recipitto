@@ -61,7 +61,7 @@ export const query_auth = () => query<User, [string, string]>(
                 id: 1,
                 login: "user1",
                 name: "Вася И.",
-                operations: ["recipe_view", "recipe_create", "recipe_update", "recipe_delete", "recipe_manage_own", "recipe_step_view", "recipe_step_create", "recipe_step_update", "recipe_step_delete", "recipe_ingredient_view", "recipe_ingredient_create", "recipe_ingredient_update", "recipe_ingredient_delete", "recipe_image_view", "recipe_image_create", "recipe_image_delete", "comment_view", "comment_create", "comment_update", "comment_delete", "rating_view", "rating_create", "rating_update", "rating_delete", "favorite_view", "favorite_create", "favorite_delete", "search_recipes", "recipe_category_view", "ingredient_category_view", "ingredient_view"],
+                operations: ["admin", "recipe_view", "recipe_create", "recipe_update", "recipe_delete", "recipe_manage_own", "recipe_step_view", "recipe_step_create", "recipe_step_update", "recipe_step_delete", "recipe_ingredient_view", "recipe_ingredient_create", "recipe_ingredient_update", "recipe_ingredient_delete", "recipe_image_view", "recipe_image_create", "recipe_image_delete", "comment_view", "comment_create", "comment_update", "comment_delete", "rating_view", "rating_create", "rating_update", "rating_delete", "favorite_view", "favorite_create", "favorite_delete", "search_recipes", "recipe_category_view", "ingredient_category_view", "ingredient_view"],
                 reg_date: "08.03.2026T15:47:22",
                 roles: ["user"]
             } as User,

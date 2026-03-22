@@ -1,4 +1,5 @@
 import { query_auth, query_logout, query_user } from "./api/client.js";
+import type { User } from "./api/types.js";
 import Spinner from "./cmps/spinner.js";
 import { $, A, Button, Div, If, initEl, SetContent, Span, type ElChildren } from "./littleLib.js";
 import { toPage } from "./main.js";
@@ -46,4 +47,14 @@ export default function Layout(children: ElChildren, permission?: string)
 			]),
 		]),
 	]))
+}
+
+export function LayoutWithUser(permission: string | null, children: (user: User) => ElChildren)
+{
+	const user = query_user();
+	Layout([
+		$(user, v => v.isLoading && Spinner()),
+		$(user, v => !v.isLoading && !v.data && initEl("h2", "layout__error", "Вы не авторизованы")),
+		If($(user, v => v.data), () => children(user.v.data!)),
+	], permission ?? undefined)
 }

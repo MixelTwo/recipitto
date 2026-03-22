@@ -446,9 +446,7 @@ export function If<T>(state: State<T>, t: ElChildren | (() => ElChildren), f?: E
 		if (!_nodesF) _nodesF = childrenToNodes(f);
 		return _nodesF;
 	};
-	const nodesT = getNodesT();
-	const nodesF = getNodesF();
-	let els = state.v ? nodesT : nodesF;
+	let els = state.v ? getNodesT() : getNodesF();
 	state.addListener((v, pv) =>
 	{
 		if (!!v == !!pv) return;
