@@ -3,6 +3,10 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="manifest" href="/manifest.json">
+	<meta name="theme-color" content="#ff8800">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 	<title>Recipitto</title>
 	<script type="module" src="/dist/main.js"></script>
 	<link rel="stylesheet" href="/css/fonts.css">
@@ -10,8 +14,22 @@
 	<link rel="stylesheet" href="/css/layout.css">
 	<link rel="stylesheet" href="/css/spinner.css">
 	<link rel="stylesheet" href="/css/index.css">
+	<link rel="stylesheet" href="/css/search.css">
+	<link rel="stylesheet" href="/css/recipe.css">
+	<link rel="stylesheet" href="/css/recipe_edit.css">
+	<link rel="stylesheet" href="/css/profile.css">
+	<link rel="stylesheet" href="/css/admin.css">
 </head>
 <body class="unrunic">
 
+<script>
+// if ('serviceWorker' in navigator) {
+//   window.addEventListener('load', () => {
+//     navigator.serviceWorker.register('/sw.js')
+//       .then(reg => console.log('Service Worker registered:', reg))
+//       .catch(err => console.error('Service Worker registration failed:', err));
+//   });
+// }
+</script>
 </body>
 </html>

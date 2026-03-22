@@ -54,3 +54,20 @@
 	background-color: var(--accent);
 	border-radius: 0.25em;
 }
+@media (max-width: 768px) {
+	.layout__header > div {
+		flex-direction: column;
+		gap: 1em;
+		padding: 1em;
+	}
+	.layout__links {
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+	.layout__user {
+		flex-direction: column;
+	}
+	.layout__body {
+		padding: 0 1em;
+	}
+}

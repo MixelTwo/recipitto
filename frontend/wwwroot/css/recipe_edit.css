@@ -1,0 +1,119 @@
+.recipe-edit-page {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 2rem 1rem;
+}
+
+.recipe-edit-page h1 {
+	font-size: 2.5rem;
+	margin-bottom: 2rem;
+	color: var(--primary-800);
+	text-align: center;
+}
+
+.recipe-edit__error {
+	padding: 1rem;
+	background: #ffebee;
+	color: #c62828;
+	border-radius: 0.5rem;
+	margin-bottom: 1.5rem;
+	text-align: center;
+}
+
+.recipe-edit__form {
+	background: white;
+	border-radius: 1rem;
+	padding: 2rem;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.recipe-edit__field {
+	margin-bottom: 1.5rem;
+}
+
+.recipe-edit__label {
+	display: block;
+	font-weight: bold;
+	margin-bottom: 0.5rem;
+	color: var(--text);
+}
+
+.recipe-edit__field input,
+.recipe-edit__field textarea,
+.recipe-edit__field select {
+	width: 100%;
+	padding: 0.75rem 1rem;
+	border: 1px solid var(--primary-300);
+	border-radius: 0.5rem;
+	font-size: 1rem;
+	font-family: inherit;
+	background: white;
+	color: var(--text);
+}
+
+.recipe-edit__field input:focus,
+.recipe-edit__field textarea:focus,
+.recipe-edit__field select:focus {
+	outline: none;
+	border-color: var(--accent-500);
+	box-shadow: 0 0 0 3px rgba(45, 210, 111, 0.2);
+}
+
+.recipe-edit__textarea {
+	min-height: 150px;
+	resize: vertical;
+}
+
+.recipe-edit__row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 1.5rem;
+}
+
+.recipe-edit__error-text {
+	display: block;
+	margin-top: 0.5rem;
+	color: #c62828;
+	font-size: 0.9rem;
+}
+
+.recipe-edit__actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 1rem;
+	margin-top: 2rem;
+}
+
+.recipe-edit__actions button {
+	padding: 0.75rem 2rem;
+	border-radius: 2rem;
+	font-weight: bold;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: background 0.2s;
+}
+
+.recipe-edit__actions button:first-child {
+	background: transparent;
+	color: var(--primary-600);
+	border: 2px solid var(--primary-300);
+}
+
+.recipe-edit__actions button:first-child:hover {
+	background: var(--primary-100);
+}
+
+.recipe-edit__actions button:last-child {
+	background: var(--accent-500);
+	color: white;
+	border: none;
+}
+
+.recipe-edit__actions button:last-child:hover {
+	background: var(--accent-600);
+}
+
+.recipe-edit__actions button:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}

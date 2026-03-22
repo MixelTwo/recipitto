@@ -1,4 +1,4 @@
-import { query_login, query_logout, query_user } from "./api/user.js";
+import { query_auth, query_logout, query_user } from "./api/client.js";
 import Spinner from "./cmps/spinner.js";
 import { $, A, Button, Div, If, initEl, SetContent, Span, type ElChildren } from "./littleLib.js";
 import { toPage } from "./main.js";
@@ -6,7 +6,7 @@ import { toPage } from "./main.js";
 export default function Layout(children: ElChildren, permission?: string)
 {
 	const user = query_user();
-	const login = query_login();
+	const login = query_auth();
 	const logout = query_logout();
 	SetContent(document.body, Div("layout", [
 		$(login, v => v.isLoading && Spinner()),
@@ -15,8 +15,11 @@ export default function Layout(children: ElChildren, permission?: string)
 			Div([], [
 				A("layout__logo", "Logo", "/", () => toPage("index")),
 				Div("layout__links", [
-					A([], "to item 1", "/item/1", () => toPage("item", { id: "1" })),
-					A([], "to item 2", "/item/2", () => toPage("item", { id: "2" })),
+					A([], "Главная", "/", () => toPage("index")),
+					A([], "Поиск", "/search", () => toPage("search")),
+					A([], "Добавить рецепт", "/recipe/new", () => toPage("recipe_create", {})),
+					A([], "Профиль", "/profile", () => toPage("profile")),
+					A([], "Админка", "/admin", () => toPage("admin")),
 				]),
 				Div("layout__user", [
 					If($(login, v => v.error), () => [

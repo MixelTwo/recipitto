@@ -1,0 +1,147 @@
+import Layout from "../layout.js";
+import { $, A, Button, Div, H1, Input, Span, initEl, If, type ElChildren, State } from "../littleLib.js";
+import { toPage } from "../main.js";
+import { setPageTitle } from "../utils.js";
+import
+{
+	query_recipe_by_id,
+	query_recipe_comments,
+	query_recipe_favorite,
+	mutate_add_favorite,
+	mutate_remove_favorite,
+	mutate_create_comment,
+} from "../api/client.js";
+import Spinner from "../cmps/spinner.js";
+
+export default function render({ id }: { id: string })
+{
+	const recipeId = parseInt(id);
+	if (isNaN(recipeId))
+	{
+		setPageTitle("Рецепт не найден");
+		Layout([
+			H1([], "Ошибка"),
+			Div([], "Некорректный идентификатор рецепта."),
+		]);
+		return;
+	}
+
+	const recipe = query_recipe_by_id(recipeId);
+	const comments = query_recipe_comments(recipeId);
+	const favorite = query_recipe_favorite(recipeId);
+
+	const activeTab = $<"details" | "ingredients" | "steps" | "comments">("details");
+	const newCommentText = $("");
+
+	setPageTitle("Рецепт");
+
+	const handleAddComment = () =>
+	{
+		if (!newCommentText.v.trim()) return;
+		const mutate = mutate_create_comment(recipeId);
+		// fetch returns a Promise, we ignore result for now
+		mutate.v.fetch(newCommentText.v);
+		newCommentText.v = "";
+		// In a real app we would invalidate comments query
+		comments.v.refetch();
+	};
+
+	const handleToggleFavorite = () =>
+	{
+		if (favorite.v.data?.favorited)
+		{
+			mutate_remove_favorite(recipeId).v.fetch();
+		} else
+		{
+			mutate_add_favorite(recipeId).v.fetch();
+		}
+		favorite.v.refetch();
+	};
+
+	Layout([
+		Div("recipe-page", [
+			$(recipe, r => r.isLoading && Spinner()),
+			$(recipe, r => r.error && Div("recipe-page__error", `Ошибка загрузки рецепта: ${r.error.msg || "Неизвестная ошибка"}`)),
+			$(recipe, r => r.data && (() =>
+			{
+				const data = r.data!;
+				return [
+					Div("recipe-page__header", [
+						Div("recipe-page__header-left", [
+							H1([], data.title),
+							Div("recipe-page__meta", [
+								Span([], `Автор: ${data.author}`),
+								Span([], `Категория: ${data.category}`),
+								Span([], `Сложность: ${data.difficulty}/5`),
+								Span([], `Активное время: ${data.active_time} мин`),
+								Span([], `Общее время: ${data.total_time} мин`),
+								Span([], `Рейтинг: ★ ${data.rating} (${data.vote_count} голосов)`),
+								Span([], `Статус: ${data.status === "published" ? "Опубликован" : "Черновик"}`),
+							]),
+						]),
+						Div("recipe-page__header-right", [
+							Button([], $(favorite, f => f.data?.favorited ? "★ В избранном" : "☆ Добавить в избранное"), handleToggleFavorite),
+							A([], "Редактировать", `/recipe/${recipeId}/edit`, () => toPage("recipe_edit", { id: String(recipeId) })),
+						]),
+					]),
+					data.main_image && initEl("img", "recipe-page__image", undefined, (el: HTMLImageElement) =>
+					{
+						el.src = data.main_image!;
+						el.alt = data.title;
+					}),
+					Div("recipe-page__description", data.description),
+					Div("recipe-page__tabs", [
+						Button([], "Основное", () => activeTab.v = "details"),
+						Button([], "Ингредиенты", () => activeTab.v = "ingredients"),
+						Button([], "Шаги приготовления", () => activeTab.v = "steps"),
+						Button([], "Комментарии", () => activeTab.v = "comments"),
+					]),
+					Div("recipe-page__tab-content", [
+						$(activeTab, tab => tab === "details" && Div("recipe-page__details", [
+							initEl("h2", "recipe-page__subtitle", "Дополнительная информация"),
+							Div([], `Дата создания: ${new Date(data.created_at).toLocaleDateString("ru-RU")}`),
+							Div([], `Дата публикации: ${data.published_at ? new Date(data.published_at).toLocaleDateString("ru-RU") : "Не опубликован"}`),
+						])),
+						$(activeTab, tab => tab === "ingredients" && Div("recipe-page__ingredients", [
+							initEl("h2", "recipe-page__subtitle", "Ингредиенты"),
+							Div([], "Список ингредиентов будет загружен позже."),
+						])),
+						$(activeTab, tab => tab === "steps" && Div("recipe-page__steps", [
+							initEl("h2", "recipe-page__subtitle", "Шаги приготовления"),
+							Div([], "Шаги будут загружены позже."),
+						])),
+						If($(activeTab, tab => tab === "comments"),
+							Div("recipe-page__comments", [
+								initEl("h2", "recipe-page__subtitle", "Комментарии"),
+								$(comments, c => c.isLoading && Spinner()),
+								$(comments, c => c.error && Div("recipe-page__error", `Ошибка загрузки комментариев`)),
+								$(comments, c => c.data && (
+									c.data.length === 0
+										? Div([], "Пока нет комментариев. Будьте первым!")
+										: Div("recipe-page__comment-list", c.data.map(comment => (
+											Div("comment", [
+												Div("comment__header", [
+													Span([], `Пользователь #${comment.user_id}`),
+													Span([], new Date(comment.created_at).toLocaleDateString("ru-RU")),
+												]),
+												Div("comment__text", comment.text),
+											])
+										)))
+								)),
+								Div("recipe-page__add-comment", [
+									initEl("h3", "recipe-page__subtitle", "Добавить комментарий"),
+									initEl("textarea", "recipe-page__comment-input", undefined, (el: HTMLTextAreaElement) =>
+									{
+										el.placeholder = "Ваш комментарий...";
+										el.value = newCommentText.v;
+										el.addEventListener("input", () => newCommentText.v = el.value);
+									}),
+									Button([], "Отправить", handleAddComment),
+								]),
+							])),
+					]),
+				];
+			})()),
+		]),
+	]);
+}

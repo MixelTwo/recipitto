@@ -1,6 +1,10 @@
 import { _onPageCleanup, trimStart } from "./littleLib.js";
 import render_index from "./pages/index.js";
-import render_item from "./pages/item.js";
+import render_search from "./pages/search.js";
+import render_recipe from "./pages/recipe.js";
+import render_recipe_edit from "./pages/recipe_edit.js";
+import render_profile from "./pages/profile.js";
+import render_admin from "./pages/admin.js";
 
 export const GlobalState = {};
 
@@ -10,10 +14,15 @@ type PageConfig<Args extends Record<string, any>> = {
 };
 const createPages = <T extends Record<string, PageConfig<any>>>(p: T) => p;
 
-const HASHNAV = true;
+const QNAV = true;
 const pages = createPages({
 	"index": { render: render_index, path: "/" },
-	"item": { render: render_item, path: "/item/<id>" },
+	"search": { render: render_search, path: "/search" },
+	"recipe_create": { render: render_recipe_edit, path: "/recipe/new" },
+	"recipe": { render: render_recipe, path: "/recipe/<id>" },
+	"recipe_edit": { render: render_recipe_edit, path: "/recipe/<id>/edit" },
+	"profile": { render: render_profile, path: "/profile" },
+	"admin": { render: render_admin, path: "/admin" },
 });
 type TPages = typeof pages;
 type RenderArgs<T extends keyof TPages> = Parameters<TPages[T]["render"]>[0];
@@ -21,24 +30,26 @@ type RenderArgs<T extends keyof TPages> = Parameters<TPages[T]["render"]>[0];
 window.addEventListener("popstate", (event) =>
 {
 	if (event.state && event.state.page in pages)
-		_toPage(event.state.page, event.state.args, false);
+		_toPage(event.state.page, event.state.args, null, false);
 	else
-		_toPage("index", undefined, false);
+		_toPage("index", undefined, null, false);
 });
-toPageByUrl(!HASHNAV ? location.pathname : trimStart(location.hash, "#"));
+toPageByUrl(!QNAV ? location.pathname : new URLSearchParams(window.location.search).get("p") || "");
 
 export function toPage<T extends keyof TPages>(
 	page: T,
-	...args: keyof RenderArgs<T> extends never
-		? [args?: RenderArgs<T>]
-		: [args: RenderArgs<T>]
+	...args: undefined extends RenderArgs<T>
+		? [args?: RenderArgs<T>, query?: Record<string, string | number>]
+		: [args: RenderArgs<T>, query?: Record<string, string | number>]
 )
 {
-	_toPage(page, args[0], false);
+	const [pageArgs, query] = args;
+	_toPage(page, pageArgs, query || {}, true);
 }
 function _toPage<T extends keyof TPages>(
 	page: T,
 	args: RenderArgs<T>,
+	query: Record<string, string | number> | null | undefined,
 	pushState: boolean,
 )
 {
@@ -47,7 +58,19 @@ function _toPage<T extends keyof TPages>(
 	const entry = pages[page] as TPages[T];
 	const render = entry.render as (args: RenderArgs<T>) => void;
 	const path = entry.path.replaceAll(/<.+>/g, v => `${(args as any)?.[v.slice(1, -1)]}`);
-	const fullpath = !HASHNAV ? path : location.pathname + location.search + "#" + path;
+	let params = new URLSearchParams(window.location.search);
+	if (query)
+	{
+		params = new URLSearchParams()
+		for (const key in query)
+		{
+			if (!Object.hasOwn(query, key)) continue;
+			const val = query[key];
+			params.set(key, `${val}`);
+		}
+	}
+	if (QNAV) params.set("p", path);
+	const fullpath = (!QNAV ? path : location.pathname) + "?" + params.toString();
 	if (pushState) window.history.pushState({ page, args }, "", fullpath);
 	else window.history.replaceState({ page, args }, "", fullpath);
 	render(args);
@@ -58,10 +81,11 @@ function toPageByUrl(pathname: string)
 	for (const key in pages)
 	{
 		if (!Object.hasOwn(pages, key)) continue;
+		console.log(key);
 		const { path } = pages[key as keyof TPages];
 		if (pathname == path)
 		{
-			_toPage(key as keyof TPages, undefined, false);
+			_toPage(key as keyof TPages, {}, null, false);
 			return;
 		}
 		if (!path) continue;
@@ -75,9 +99,9 @@ function toPageByUrl(pathname: string)
 		{
 			const args: Record<string, string> = {};
 			argNames.forEach((name, i) => args[name] = m[i + 1] || "");
-			_toPage(key as keyof TPages, args as any, false);
+			_toPage(key as keyof TPages, args as any, null, false);
 			return;
 		}
 	}
-	_toPage("index", undefined, false);
+	_toPage("index", undefined, null, false);
 }
