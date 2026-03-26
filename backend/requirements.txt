@@ -1,4 +1,5 @@
 bafser==2.8.7
+gunicorn
 python-dotenv
 requests
-gunicorn
+transliterate

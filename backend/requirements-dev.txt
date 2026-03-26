@@ -1,0 +1,21 @@
+# Development dependencies for testing and linting
+-r requirements.txt
+
+# Testing
+pytest==8.3.4
+pytest-cov==6.0.0
+pytest-xdist==3.6.1
+
+# Linting and formatting
+flake8==7.1.2
+black==24.10.0
+isort==5.13.2
+
+# Type checking
+pyright==1.1.389
+
+# Optional: for mocking (if needed)
+pytest-mock==3.14.0
+
+# Optional: for HTTP testing (if needed)
+requests-mock==1.12.1
