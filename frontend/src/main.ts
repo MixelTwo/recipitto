@@ -70,7 +70,8 @@ function _toPage<T extends keyof TPages>(
 		}
 	}
 	if (QNAV) params.set("p", path);
-	const fullpath = (!QNAV ? path : location.pathname) + "?" + params.toString();
+	const paramsStr = params.toString();
+	const fullpath = (!QNAV ? path : location.pathname) + (paramsStr ? "?" + paramsStr : "");
 	if (pushState) window.history.pushState({ page, args }, "", fullpath);
 	else window.history.replaceState({ page, args }, "", fullpath);
 	render(args);

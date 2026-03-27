@@ -164,6 +164,16 @@ export const query_recipe_comments = (recipe_id: number) => query<CommentDict[],
     []
 );
 
+export const query_recipe_ingredients = (recipe_id: number) => query<RecipeIngredientDict[], []>(
+    `recipe_${recipe_id}_ingredients`,
+    async () =>
+    {
+        const ingredients = await fetchJsonGet<RecipeIngredientDict[]>(`/api/recipes/${recipe_id}/ingredients`);
+        return ingredients;
+    },
+    []
+);
+
 export const mutate_create_comment = (recipe_id: number) => query<CommentDict, [string]>(
     null,
     async (text: string) =>

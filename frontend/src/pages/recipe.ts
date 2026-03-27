@@ -7,11 +7,13 @@ import
 	query_recipe_by_id,
 	query_recipe_comments,
 	query_recipe_favorite,
+	query_recipe_ingredients,
 	mutate_add_favorite,
 	mutate_remove_favorite,
 	mutate_create_comment,
 } from "../api/client.js";
 import Spinner from "../cmps/spinner.js";
+import IngredientList from "../cmps/ingredient-list.js";
 
 export default function render({ id }: { id: string })
 {
@@ -28,6 +30,7 @@ export default function render({ id }: { id: string })
 
 	const recipe = query_recipe_by_id(recipeId);
 	const comments = query_recipe_comments(recipeId);
+	const ingredients = query_recipe_ingredients(recipeId);
 	const favorite = query_recipe_favorite(recipeId);
 
 	const activeTab = $<"details" | "ingredients" | "steps" | "comments">("details");
@@ -104,7 +107,13 @@ export default function render({ id }: { id: string })
 						])),
 						$(activeTab, tab => tab === "ingredients" && Div("recipe-page__ingredients", [
 							initEl("h2", "recipe-page__subtitle", "Ингредиенты"),
-							Div([], "Список ингредиентов будет загружен позже."),
+							$(ingredients, i => i.isLoading && Spinner()),
+							$(ingredients, i => i.error && Div("recipe-page__error", `Ошибка загрузки ингредиентов: ${i.error.msg || "Неизвестная ошибка"}`)),
+							$(ingredients, i => i.data && IngredientList({
+								ingredients: i.data,
+								showHeader: true,
+								emptyMessage: "В этом рецепте пока нет ингредиентов."
+							})),
 						])),
 						$(activeTab, tab => tab === "steps" && Div("recipe-page__steps", [
 							initEl("h2", "recipe-page__subtitle", "Шаги приготовления"),
