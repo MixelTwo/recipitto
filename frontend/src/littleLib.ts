@@ -487,7 +487,7 @@ export class FetchError extends Error
 		super(message)
 	}
 }
-async function fetchWithJson(method: "GET" | "POST" | "DELETE", url: RequestInfo | URL, body?: any)
+async function fetchWithJson(method: "GET" | "POST" | "DELETE" | "PATCH", url: RequestInfo | URL, body?: any)
 {
 	const res = await fetch(url, {
 		method,
@@ -520,7 +520,12 @@ export function fetchDelete(url: RequestInfo | URL, body?: any)
 	return fetchWithJson("DELETE", url, body);
 }
 
-async function fetchJson<T>(method: "GET" | "POST" | "DELETE", url: RequestInfo | URL, body?: any)
+export function fetchPatch(url: RequestInfo | URL, body?: any)
+{
+	return fetchWithJson("PATCH", url, body);
+}
+
+async function fetchJson<T>(method: "GET" | "POST" | "DELETE" | "PATCH", url: RequestInfo | URL, body?: any)
 {
 	const res = await fetchWithJson(method, url, body);
 	const data = await res.json();
@@ -540,4 +545,9 @@ export function fetchJsonPost<T>(url: RequestInfo | URL, body?: any)
 export function fetchJsonDelete<T>(url: RequestInfo | URL, body?: any)
 {
 	return fetchJson<T>("DELETE", url, body);
+}
+
+export function fetchJsonPatch<T>(url: RequestInfo | URL, body?: any)
+{
+	return fetchJson<T>("PATCH", url, body);
 }

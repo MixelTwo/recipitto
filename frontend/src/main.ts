@@ -14,7 +14,7 @@ type PageConfig<Args extends Record<string, any>> = {
 };
 const createPages = <T extends Record<string, PageConfig<any>>>(p: T) => p;
 
-const QNAV = true;
+const QNAV = false;
 const pages = createPages({
 	"index": { render: render_index, path: "/" },
 	"search": { render: render_search, path: "/search" },
@@ -81,7 +81,6 @@ function toPageByUrl(pathname: string)
 	for (const key in pages)
 	{
 		if (!Object.hasOwn(pages, key)) continue;
-		console.log(key);
 		const { path } = pages[key as keyof TPages];
 		if (pathname == path)
 		{

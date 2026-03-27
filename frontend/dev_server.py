@@ -38,10 +38,15 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
         if self.path.startswith("/api"):
             self.proxy_request()
         else:
-            # SPA Fallback logic
-            path = self.translate_path(self.path)
-            if not os.path.exists(path):
-                self.path = "index.html"
+            physical_path = self.translate_path(self.path)
+            if not os.path.exists(physical_path):
+                filename = os.path.basename(self.path)
+                if "." in filename:
+                    self.send_error(404, f"File not found: {self.path}")
+                    return
+                else:
+                    self.path = "/index.html"
+
             return super().do_GET()
 
     def do_POST(self):
@@ -87,10 +92,14 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
             conn.close()
 
 
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    pass
+
+
 os.chdir(DIRECTORY)
 socketserver.TCPServer.allow_reuse_address = True
 
-with socketserver.TCPServer(("", PORT), SPAServer) as httpd:
+with ThreadedTCPServer(("", PORT), SPAServer) as httpd:
     print(f"SPA Frontend: http://localhost:{PORT}")
     print(f"API Proxy: Forwarding /api -> http://{API_TARGET}:{API_PORT}")
     httpd.serve_forever()

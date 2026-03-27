@@ -1,0 +1,616 @@
+{
+  "/api/auth POST": {
+    "__desc__": "Get auth cookie",
+    "__jwt__": false,
+    "request": {
+      "login": "string",
+      "password": "string"
+    },
+    "response": {
+      "avatar": "string | null",
+      "id": "number",
+      "login": "string",
+      "name": "string",
+      "operations": "string[]",
+      "reg_date": "string",
+      "roles": "string[]"
+    }
+  },
+  "/api/comments/<int:comment_id> DELETE": {
+    "__desc__": "Delete a comment",
+    "__permsions__": "comment_delete"
+  },
+  "/api/comments/<int:comment_id> GET": {
+    "__desc__": "Get a comment by ID",
+    "__jwt__": false,
+    "response": {
+      "created_at": "string",
+      "id": "number",
+      "recipe_id": "number",
+      "text": "string",
+      "user_id": "number"
+    }
+  },
+  "/api/comments/<int:comment_id> PATCH": {
+    "__desc__": "Update a comment",
+    "__permsions__": "comment_update",
+    "request": {
+      "text?": "string"
+    },
+    "response": {
+      "created_at": "string",
+      "id": "number",
+      "recipe_id": "number",
+      "text": "string",
+      "user_id": "number"
+    }
+  },
+  "/api/favorites GET": {
+    "__desc__": "List current user's favorite recipes",
+    "__permsions__": "favorite_view",
+    "response": [
+      {
+        "added_at": "string",
+        "recipe_id": "number",
+        "user_id": "number"
+      }
+    ]
+  },
+  "/api/ingredient-categories GET": {
+    "__desc__": "List all ingredient categories",
+    "__jwt__": false,
+    "response": [
+      {
+        "id": "number",
+        "name": "string"
+      }
+    ]
+  },
+  "/api/ingredient-categories POST": {
+    "__desc__": "Create a new ingredient category",
+    "__permsions__": "ingredient_category_create",
+    "request": {
+      "name": "string"
+    },
+    "response": {
+      "id": "number",
+      "name": "string"
+    }
+  },
+  "/api/ingredient-categories/<int:category_id> DELETE": {
+    "__desc__": "Delete an ingredient category",
+    "__permsions__": "ingredient_category_delete"
+  },
+  "/api/ingredient-categories/<int:category_id> GET": {
+    "__desc__": "Get an ingredient category by ID",
+    "__jwt__": false,
+    "response": {
+      "id": "number",
+      "name": "string"
+    }
+  },
+  "/api/ingredient-categories/<int:category_id> PATCH": {
+    "__desc__": "Update an ingredient category",
+    "__permsions__": "ingredient_category_update",
+    "request": {
+      "name?": "string"
+    },
+    "response": {
+      "id": "number",
+      "name": "string"
+    }
+  },
+  "/api/ingredients GET": {
+    "__desc__": "List all ingredients",
+    "__jwt__": false,
+    "response": [
+      {
+        "category": "string",
+        "id": "number",
+        "name": "string"
+      }
+    ]
+  },
+  "/api/ingredients POST": {
+    "__desc__": "Create a new ingredient",
+    "__permsions__": "ingredient_create",
+    "request": {
+      "category_id": "number",
+      "name": "string"
+    },
+    "response": {
+      "category": "string",
+      "id": "number",
+      "name": "string"
+    }
+  },
+  "/api/ingredients/<int:ingredient_id> DELETE": {
+    "__desc__": "Delete an ingredient",
+    "__permsions__": "ingredient_delete"
+  },
+  "/api/ingredients/<int:ingredient_id> GET": {
+    "__desc__": "Get an ingredient by ID",
+    "__jwt__": false,
+    "response": {
+      "category": "string",
+      "id": "number",
+      "name": "string"
+    }
+  },
+  "/api/ingredients/<int:ingredient_id> PATCH": {
+    "__desc__": "Update an ingredient",
+    "__permsions__": "ingredient_update",
+    "request": {
+      "category_id?": "number",
+      "name?": "string"
+    },
+    "response": {
+      "category": "string",
+      "id": "number",
+      "name": "string"
+    }
+  },
+  "/api/logout POST": {
+    "__desc__": "Remove auth cookie",
+    "__jwt__": false
+  },
+  "/api/recipe-categories GET": {
+    "__desc__": "List all recipe categories",
+    "__jwt__": false,
+    "response": [
+      {
+        "id": "number",
+        "name": "string"
+      }
+    ]
+  },
+  "/api/recipe-categories POST": {
+    "__desc__": "Create a new recipe category",
+    "__permsions__": "recipe_category_create",
+    "request": {
+      "name": "string"
+    },
+    "response": {
+      "id": "number",
+      "name": "string"
+    }
+  },
+  "/api/recipe-categories/<int:category_id> DELETE": {
+    "__desc__": "Delete a recipe category",
+    "__permsions__": "recipe_category_delete"
+  },
+  "/api/recipe-categories/<int:category_id> GET": {
+    "__desc__": "Get a recipe category by ID",
+    "__jwt__": false,
+    "response": {
+      "id": "number",
+      "name": "string"
+    }
+  },
+  "/api/recipe-categories/<int:category_id> PATCH": {
+    "__desc__": "Update a recipe category",
+    "__permsions__": "recipe_category_update",
+    "request": {
+      "name?": "string"
+    },
+    "response": {
+      "id": "number",
+      "name": "string"
+    }
+  },
+  "/api/recipes GET": {
+    "__desc__": "List of all recipes",
+    "__jwt__": false,
+    "response": [
+      {
+        "active_time": "number",
+        "author": "string",
+        "category": "string",
+        "created_at": "string",
+        "description": "string",
+        "difficulty": "number",
+        "id": "number",
+        "main_image": "string | null",
+        "published_at": "string | null",
+        "rating": "number",
+        "status": "TRecipeStatus",
+        "title": "string",
+        "total_time": "number",
+        "vote_count": "number"
+      }
+    ]
+  },
+  "/api/recipes/<int:recipe_id> DELETE": {
+    "__desc__": "Delete a recipe",
+    "__permsions__": "recipe_delete"
+  },
+  "/api/recipes/<int:recipe_id> GET": {
+    "__desc__": "Get a recipe by ID",
+    "__jwt__": false,
+    "response": {
+      "active_time": "number",
+      "author": "string",
+      "category": "string",
+      "created_at": "string",
+      "description": "string",
+      "difficulty": "number",
+      "id": "number",
+      "main_image": "string | null",
+      "published_at": "string | null",
+      "rating": "number",
+      "status": "TRecipeStatus",
+      "title": "string",
+      "total_time": "number",
+      "vote_count": "number"
+    }
+  },
+  "/api/recipes/<int:recipe_id> PATCH": {
+    "__desc__": "Update a recipe",
+    "__permsions__": "recipe_update",
+    "request": {
+      "active_time?": "number",
+      "category_id?": "number",
+      "description?": "string",
+      "difficulty?": "number",
+      "main_image_id?": "number",
+      "status?": "TRecipeStatus",
+      "title?": "string",
+      "total_time?": "number"
+    },
+    "response": {
+      "active_time": "number",
+      "author": "string",
+      "category": "string",
+      "created_at": "string",
+      "description": "string",
+      "difficulty": "number",
+      "id": "number",
+      "main_image": "string | null",
+      "published_at": "string | null",
+      "rating": "number",
+      "status": "TRecipeStatus",
+      "title": "string",
+      "total_time": "number",
+      "vote_count": "number"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/comments GET": {
+    "__desc__": "List comments of a recipe",
+    "__jwt__": false,
+    "response": [
+      {
+        "created_at": "string",
+        "id": "number",
+        "recipe_id": "number",
+        "text": "string",
+        "user_id": "number"
+      }
+    ]
+  },
+  "/api/recipes/<int:recipe_id>/comments POST": {
+    "__desc__": "Create a comment on a recipe",
+    "__permsions__": "comment_create",
+    "request": {
+      "text": "string"
+    },
+    "response": {
+      "created_at": "string",
+      "id": "number",
+      "recipe_id": "number",
+      "text": "string",
+      "user_id": "number"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/favorite DELETE": {
+    "__desc__": "Remove recipe from favorites",
+    "__permsions__": "favorite_delete"
+  },
+  "/api/recipes/<int:recipe_id>/favorite GET": {
+    "__desc__": "Check if recipe is favorited by current user",
+    "__permsions__": "favorite_view",
+    "response": {
+      "favorite": "FavoriteDict | null",
+      "favorited": "boolean"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/favorite POST": {
+    "__desc__": "Add recipe to favorites",
+    "__permsions__": "favorite_create",
+    "response": {
+      "added_at": "string",
+      "recipe_id": "number",
+      "user_id": "number"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/images GET": {
+    "__desc__": "List images of a recipe",
+    "__jwt__": false,
+    "response": [
+      {
+        "id": "number",
+        "image_id": "number",
+        "image_path": "string",
+        "recipe_id": "number"
+      }
+    ]
+  },
+  "/api/recipes/<int:recipe_id>/images POST": {
+    "__desc__": "Add an image to a recipe",
+    "__permsions__": "recipe_image_create",
+    "request": {
+      "image_id": "number"
+    },
+    "response": {
+      "id": "number",
+      "image_id": "number",
+      "image_path": "string",
+      "recipe_id": "number"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/images/<int:image_id> DELETE": {
+    "__desc__": "Remove an image from a recipe",
+    "__permsions__": "recipe_image_delete"
+  },
+  "/api/recipes/<int:recipe_id>/images/<int:image_id> GET": {
+    "__desc__": "Get a recipe image by ID",
+    "__jwt__": false,
+    "response": {
+      "id": "number",
+      "image_id": "number",
+      "image_path": "string",
+      "recipe_id": "number"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/ingredients GET": {
+    "__desc__": "List ingredients of a recipe",
+    "__jwt__": false,
+    "response": [
+      {
+        "ingredient_id": "number",
+        "ingredient_name": "string",
+        "quantity": "number",
+        "recipe_id": "number",
+        "unit": "string"
+      }
+    ]
+  },
+  "/api/recipes/<int:recipe_id>/ingredients POST": {
+    "__desc__": "Add an ingredient to a recipe",
+    "__permsions__": "recipe_ingredient_create",
+    "request": {
+      "ingredient_id": "number",
+      "quantity": "number",
+      "unit": "string"
+    },
+    "response": {
+      "ingredient_id": "number",
+      "ingredient_name": "string",
+      "quantity": "number",
+      "recipe_id": "number",
+      "unit": "string"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/ingredients/<int:ingredient_id> DELETE": {
+    "__desc__": "Remove an ingredient from a recipe",
+    "__permsions__": "recipe_ingredient_delete"
+  },
+  "/api/recipes/<int:recipe_id>/ingredients/<int:ingredient_id> GET": {
+    "__desc__": "Get a recipe ingredient by IDs",
+    "__jwt__": false,
+    "response": {
+      "ingredient_id": "number",
+      "ingredient_name": "string",
+      "quantity": "number",
+      "recipe_id": "number",
+      "unit": "string"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/ingredients/<int:ingredient_id> PATCH": {
+    "__desc__": "Update a recipe ingredient",
+    "__permsions__": "recipe_ingredient_update",
+    "request": {
+      "quantity?": "number",
+      "unit?": "string"
+    },
+    "response": {
+      "ingredient_id": "number",
+      "ingredient_name": "string",
+      "quantity": "number",
+      "recipe_id": "number",
+      "unit": "string"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/ratings DELETE": {
+    "__desc__": "Remove current user's rating for a recipe",
+    "__permsions__": "rating_delete"
+  },
+  "/api/recipes/<int:recipe_id>/ratings GET": {
+    "__desc__": "Get rating statistics for a recipe",
+    "__jwt__": false,
+    "response": {
+      "average": "number",
+      "count": "number",
+      "distribution": "{[key: string]: number}",
+      "recipe_id": "number"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/ratings POST": {
+    "__desc__": "Rate a recipe (create or update)",
+    "__permsions__": "rating_create",
+    "request": {
+      "rating": "number"
+    },
+    "response": {
+      "rating": "number",
+      "recipe_id": "number",
+      "user_id": "number"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/ratings/me GET": {
+    "__desc__": "Get current user's rating for a recipe",
+    "__permsions__": "rating_view",
+    "response": {
+      "rating": "number",
+      "recipe_id": "number",
+      "user_id": "number"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/steps GET": {
+    "__desc__": "List steps of a recipe",
+    "__jwt__": false,
+    "response": [
+      {
+        "id": "number",
+        "image": "string | null",
+        "recipe_id": "number",
+        "step_number": "number",
+        "text": "string"
+      }
+    ]
+  },
+  "/api/recipes/<int:recipe_id>/steps POST": {
+    "__desc__": "Add a step to a recipe",
+    "__permsions__": "recipe_step_create",
+    "request": {
+      "image_id?": "number",
+      "step_number": "number",
+      "text": "string"
+    },
+    "response": {
+      "id": "number",
+      "image": "string | null",
+      "recipe_id": "number",
+      "step_number": "number",
+      "text": "string"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/steps/<int:step_id> DELETE": {
+    "__desc__": "Delete a recipe step",
+    "__permsions__": "recipe_step_delete"
+  },
+  "/api/recipes/<int:recipe_id>/steps/<int:step_id> GET": {
+    "__desc__": "Get a recipe step by ID",
+    "__jwt__": false,
+    "response": {
+      "id": "number",
+      "image": "string | null",
+      "recipe_id": "number",
+      "step_number": "number",
+      "text": "string"
+    }
+  },
+  "/api/recipes/<int:recipe_id>/steps/<int:step_id> PATCH": {
+    "__desc__": "Update a recipe step",
+    "__permsions__": "recipe_step_update",
+    "request": {
+      "image_id?": "number",
+      "step_number?": "number",
+      "text?": "string"
+    },
+    "response": {
+      "id": "number",
+      "image": "string | null",
+      "recipe_id": "number",
+      "step_number": "number",
+      "text": "string"
+    }
+  },
+  "/api/search/recipes GET": {
+    "__desc__": "Search recipes with filters and sorting",
+    "__jwt__": false,
+    "query": {
+      "q": "string",
+      "category_id": "int",
+      "author_id": "int",
+      "difficulty": "int  # 1-5",
+      "max_active_time": "int",
+      "max_total_time": "int",
+      "min_rating": "float",
+      "ingredients_include": "list of ingredient IDs",
+      "ingredients_exclude": "list of ingredient IDs",
+      "sort_by": "'relevance' | 'rating' | 'date' | 'active_time' | 'total_time' | 'difficulty'",
+      "sort_order": "'asc' | 'desc'",
+      "page": "int, default: 1",
+      "per_page": "int, default: 20"
+    },
+    "response": {
+      "page": "number",
+      "per_page": "number",
+      "results": "RecipeDict[]",
+      "total": "number"
+    }
+  },
+  "/api/user GET": {
+    "__desc__": "Get current user",
+    "response": {
+      "avatar": "string | null",
+      "id": "number",
+      "login": "string",
+      "name": "string",
+      "operations": "string[]",
+      "reg_date": "string",
+      "roles": "string[]"
+    }
+  },
+  "CommentDict": {
+    "created_at": "string",
+    "id": "number",
+    "recipe_id": "number",
+    "text": "string",
+    "user_id": "number"
+  },
+  "FavoriteDict": {
+    "added_at": "string",
+    "recipe_id": "number",
+    "user_id": "number"
+  },
+  "IngredientCategoryDict": {
+    "id": "number",
+    "name": "string"
+  },
+  "IngredientDict": {
+    "category": "string",
+    "id": "number",
+    "name": "string"
+  },
+  "RecipeCategoryDict": {
+    "id": "number",
+    "name": "string"
+  },
+  "RecipeDict": {
+    "active_time": "number",
+    "author": "string",
+    "category": "string",
+    "created_at": "string",
+    "description": "string",
+    "difficulty": "number",
+    "id": "number",
+    "main_image": "string | null",
+    "published_at": "string | null",
+    "rating": "number",
+    "status": "TRecipeStatus",
+    "title": "string",
+    "total_time": "number",
+    "vote_count": "number"
+  },
+  "RecipeImageDict": {
+    "id": "number",
+    "image_id": "number",
+    "image_path": "string",
+    "recipe_id": "number"
+  },
+  "RecipeIngredientDict": {
+    "ingredient_id": "number",
+    "ingredient_name": "string",
+    "quantity": "number",
+    "recipe_id": "number",
+    "unit": "string"
+  },
+  "RecipeStepDict": {
+    "id": "number",
+    "image": "string | null",
+    "recipe_id": "number",
+    "step_number": "number",
+    "text": "string"
+  }
+}
