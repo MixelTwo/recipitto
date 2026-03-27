@@ -295,4 +295,15 @@ export const query_search_recipes = (params: SearchQuery) => query<SearchRespons
     []
 );
 
+// Recipe steps
+export const query_recipe_steps = (recipe_id: number) => query<RecipeStepDict[], []>(
+    `recipe_${recipe_id}_steps`,
+    async () =>
+    {
+        const steps = await fetchJsonGet<RecipeStepDict[]>(`/api/recipes/${recipe_id}/steps`);
+        return steps;
+    },
+    []
+);
+
 // Note: More endpoints can be added as needed.

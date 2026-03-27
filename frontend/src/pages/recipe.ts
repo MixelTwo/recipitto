@@ -8,12 +8,14 @@ import
 	query_recipe_comments,
 	query_recipe_favorite,
 	query_recipe_ingredients,
+	query_recipe_steps,
 	mutate_add_favorite,
 	mutate_remove_favorite,
 	mutate_create_comment,
 } from "../api/client.js";
 import Spinner from "../cmps/spinner.js";
 import IngredientList from "../cmps/ingredient-list.js";
+import RecipeSteps from "../cmps/recipe-steps.js";
 
 export default function render({ id }: { id: string })
 {
@@ -31,6 +33,7 @@ export default function render({ id }: { id: string })
 	const recipe = query_recipe_by_id(recipeId);
 	const comments = query_recipe_comments(recipeId);
 	const ingredients = query_recipe_ingredients(recipeId);
+	const steps = query_recipe_steps(recipeId);
 	const favorite = query_recipe_favorite(recipeId);
 
 	const activeTab = $<"details" | "ingredients" | "steps" | "comments">("details");
@@ -117,7 +120,12 @@ export default function render({ id }: { id: string })
 						])),
 						$(activeTab, tab => tab === "steps" && Div("recipe-page__steps", [
 							initEl("h2", "recipe-page__subtitle", "Шаги приготовления"),
-							Div([], "Шаги будут загружены позже."),
+							$(steps, s => s.isLoading && Spinner()),
+							$(steps, s => s.error && Div("recipe-page__error", `Ошибка загрузки шагов: ${s.error.msg || "Неизвестная ошибка"}`)),
+							$(steps, s => s.data && RecipeSteps({
+								steps: s.data,
+								emptyMessage: "В этом рецепте пока нет шагов приготовления."
+							})),
 						])),
 						If($(activeTab, tab => tab === "comments"),
 							Div("recipe-page__comments", [
