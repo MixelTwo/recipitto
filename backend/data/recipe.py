@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Literal, TypedDict
 
 from bafser import Image, Log, ObjMixin, SqlAlchemyBase, get_datetime_now
+from flask import url_for
 from sqlalchemy import ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -140,7 +141,7 @@ class Recipe(SqlAlchemyBase, ObjMixin):
             "status": self.status.value,
             "published_at": self.published_at.isoformat() if self.published_at else None,
             "category": self.category.name,
-            "main_image": self.main_image.get_path() if self.main_image else None,
+            "main_image": url_for("images.img", imgId=self.main_image_id) if self.main_image_id else None,
         }
 
 

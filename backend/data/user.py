@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import TypedDict
 
 from bafser import Image, UserBase, get_datetime_now
+from flask import url_for
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -25,7 +26,7 @@ class User(UserBase):
             "roles": self.get_roles_names(),
             "operations": self.get_operations(),
             "reg_date": self.reg_date.isoformat(),
-            "avatar": self.avatar.get_path() if self.avatar else None,
+            "avatar": url_for("images.img", imgId=self.avatar_id) if self.avatar_id else None,
         }
 
 

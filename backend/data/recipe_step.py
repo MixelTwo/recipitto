@@ -1,6 +1,7 @@
 from typing import TypedDict
 
 from bafser import Image, Log, ObjMixin, SqlAlchemyBase, get_db_session
+from flask import url_for
 from sqlalchemy import ForeignKey, Text
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
@@ -64,7 +65,7 @@ class RecipeStep(SqlAlchemyBase, ObjMixin):
             "recipe_id": self.recipe_id,
             "step_number": self.step_number,
             "text": self.text,
-            "image": self.image.get_path() if self.image else None,
+            "image": url_for("images.img", imgId=self.image_id) if self.image_id else None,
         }
 
 

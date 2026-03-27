@@ -1,6 +1,7 @@
 from typing import TypedDict
 
 from bafser import Image, Log, ObjMixin, SqlAlchemyBase
+from flask import url_for
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
@@ -44,7 +45,7 @@ class RecipeImage(SqlAlchemyBase, ObjMixin):
             "id": self.id,
             "recipe_id": self.recipe_id,
             "image_id": self.image_id,
-            "image_path": self.image.get_path(),
+            "image_path": url_for("images.img", imgId=self.image_id),
         }
 
 
