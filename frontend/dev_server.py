@@ -1,10 +1,13 @@
 import http.client
 import http.server
 import os
+import shutil
+import socket
 import socketserver
+import time
 
 PORT = 3000
-API_TARGET = "localhost"
+API_TARGET = "127.0.0.1"
 API_PORT = 5000
 DIRECTORY = "wwwroot"
 
@@ -64,30 +67,44 @@ class SPAServer(http.server.SimpleHTTPRequestHandler):
     # --- Proxy Engine ---
 
     def proxy_request(self):
-        """Forwards request, headers, and body to the backend API."""
+        """Forwards request using streaming to reduce latency and RAM usage."""
         content_length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(content_length) if content_length > 0 else None
 
+        # 1. Use a context manager to ensure the connection is handled cleanly
         conn = http.client.HTTPConnection(API_TARGET, API_PORT)
-
-        # Forward headers from original request
-        headers = {key: value for key, value in self.headers.items()}
+        conn.connect()  # Manually connect so we can access the socket
+        conn.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         try:
-            # Send the request with the specific method (GET, POST, PUT, etc.)
+            # 2. Forward headers (Filter out 'Host' to avoid logic errors at target)
+            headers = {k: v for k, v in self.headers.items() if k.lower() != "host"}
+
+            t = time.perf_counter()
             conn.request(self.command, self.path, body=body, headers=headers)
+            print(time.perf_counter() - t)
             res = conn.getresponse()
 
-            # Pass the backend response back to the browser
+            # 3. Send Response Status and Headers immediately
             self.send_response(res.status)
             for key, value in res.getheaders():
-                # Avoid duplicate hop-by-hop headers if necessary
-                self.send_header(key, value)
-            self.end_headers()
-            self.wfile.write(res.read())
+                # Important: Don't forward 'Transfer-Encoding' if we aren't handling chunks manually
+                if key.lower() not in ["transfer-encoding", "content-length"]:
+                    self.send_header(key, value)
 
-        except ConnectionRefusedError:
-            self.send_error(502, f"Backend at {API_TARGET}:{API_PORT} is unreachable.")
+            # Explicitly set content length if provided by backend
+            length = res.getheader("Content-Length")
+            if length:
+                self.send_header("Content-Length", length)
+
+            self.end_headers()
+
+            # 4. STREAMING: Instead of res.read(), pipe the source to the destination
+            # shutil.copyfileobj is highly optimized for internal buffering
+            shutil.copyfileobj(res, self.wfile)
+
+        except (ConnectionRefusedError, http.client.HTTPException) as e:
+            self.send_error(502, f"Gateway Error: {e}")
         finally:
             conn.close()
 
