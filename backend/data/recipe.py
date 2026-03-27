@@ -140,6 +140,7 @@ class Recipe(SqlAlchemyBase, ObjMixin):
             "created_at": self.created_at.isoformat(),
             "status": self.status.value,
             "published_at": self.published_at.isoformat() if self.published_at else None,
+            "category_id": self.category_id,
             "category": self.category.name,
             "main_image": url_for("images.img", imgId=self.main_image_id) if self.main_image_id else None,
         }
@@ -158,5 +159,6 @@ class RecipeDict(TypedDict):
     created_at: str
     status: TRecipeStatus
     published_at: str | None
+    category_id: int
     category: str
     main_image: str | None

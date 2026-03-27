@@ -2,13 +2,26 @@ import Layout from "../layout.js";
 import { $, Button, Div, H1, Input, Span, initEl, type ElChildren, State } from "../littleLib.js";
 import { toPage } from "../main.js";
 import { setPageTitle } from "../utils.js";
-import { query_recipe_by_id, query_recipe_categories, mutate_create_recipe, mutate_update_recipe } from "../api/client.js";
+import
+{
+	query_recipe_by_id,
+	query_recipe_categories,
+	query_recipe_ingredients,
+	mutate_create_recipe,
+	mutate_update_recipe,
+	mutate_add_recipe_ingredient,
+	mutate_delete_recipe_ingredient,
+} from "../api/client.js";
+import { RecipeIngredientDict } from "../api/types.js";
 import Spinner from "../cmps/spinner.js";
+import IngredientPicker from "../cmps/ingredient-picker.js";
 
-export default function render({ id }: { id?: string }) {
+export default function render({ id }: { id?: string })
+{
 	const isNew = !id;
 	const recipeId = id ? parseInt(id) : null;
-	if (recipeId !== null && isNaN(recipeId)) {
+	if (recipeId !== null && isNaN(recipeId))
+	{
 		setPageTitle("Ошибка");
 		Layout([
 			H1([], "Ошибка"),
@@ -30,15 +43,18 @@ export default function render({ id }: { id?: string }) {
 	const status = $<"draft" | "published">("draft");
 	const errors = $<Record<string, string>>({});
 	const isSubmitting = $(false);
+	const ingredients = $<RecipeIngredientDict[]>([]);
 
 	// Load existing recipe if editing
-	if (recipe) {
-		$(recipe, r => {
-			if (r.data) {
+	if (recipe)
+	{
+		$(recipe, r =>
+		{
+			if (r.data)
+			{
 				title.v = r.data.title;
 				description.v = r.data.description;
-				// category mapping by name? We'll need to map later
-				categoryId.v = null; // placeholder
+				categoryId.v = r.data.category_id;
 				difficulty.v = r.data.difficulty;
 				activeTime.v = r.data.active_time;
 				totalTime.v = r.data.total_time;
@@ -47,9 +63,23 @@ export default function render({ id }: { id?: string }) {
 		});
 	}
 
+	// Load existing ingredients if editing
+	if (recipeId)
+	{
+		const existingIngredientsQuery = query_recipe_ingredients(recipeId);
+		$(existingIngredientsQuery, q =>
+		{
+			if (q.data)
+			{
+				ingredients.v = q.data;
+			}
+		});
+	}
+
 	setPageTitle(isNew ? "Создание рецепта" : "Редактирование рецепта");
 
-	const validate = (): boolean => {
+	const validate = (): boolean =>
+	{
 		const err: Record<string, string> = {};
 		if (!title.v.trim()) err.title = "Название обязательно";
 		if (!description.v.trim()) err.description = "Описание обязательно";
@@ -61,7 +91,8 @@ export default function render({ id }: { id?: string }) {
 		return Object.keys(err).length === 0;
 	};
 
-	const handleSubmit = async () => {
+	const handleSubmit = async () =>
+	{
 		if (!validate()) return;
 		isSubmitting.v = true;
 
@@ -76,22 +107,58 @@ export default function render({ id }: { id?: string }) {
 			main_image_id: undefined as number | undefined,
 		};
 
-		try {
-			if (isNew) {
+		try
+		{
+			let savedRecipeId: number | null = null;
+			if (isNew)
+			{
 				const result = await mutate_create_recipe().v.fetch(data);
-				if (result) {
-					toPage("recipe", { id: String((result as any).id) });
+				if (result)
+				{
+					savedRecipeId = (result as any).id;
 				}
-			} else {
+			} else
+			{
 				if (!recipeId) return;
 				const result = await mutate_update_recipe(recipeId).v.fetch(data);
-				if (result) {
-					toPage("recipe", { id: String(recipeId) });
+				if (result)
+				{
+					savedRecipeId = recipeId;
 				}
 			}
-		} catch {
+
+			// Save ingredients if we have a recipe ID
+			if (savedRecipeId !== null && ingredients.v.length > 0)
+			{
+				// For simplicity, we add each ingredient sequentially
+				// In a real app you might want batch operations and error handling
+				for (const ing of ingredients.v)
+				{
+					try
+					{
+						await mutate_add_recipe_ingredient(savedRecipeId).v.fetch({
+							ingredient_id: ing.ingredient_id,
+							quantity: ing.quantity,
+							unit: ing.unit,
+						});
+					} catch (err)
+					{
+						console.error("Failed to save ingredient", ing, err);
+						// Continue with other ingredients
+					}
+				}
+			}
+
+			// Redirect to recipe page
+			if (savedRecipeId !== null)
+			{
+				toPage("recipe", { id: String(savedRecipeId) });
+			}
+		} catch
+		{
 			errors.v = { submit: "Ошибка при сохранении рецепта" };
-		} finally {
+		} finally
+		{
 			isSubmitting.v = false;
 		}
 	};
@@ -104,16 +171,18 @@ export default function render({ id }: { id?: string }) {
 			Div("recipe-edit__form", [
 				Div("recipe-edit__field", [
 					initEl("label", "recipe-edit__label", "Название рецепта *"),
-					Input([], "text", "Введите название...", (el) => {
-						el.value = title.v;
+					Input([], "text", "Введите название...", (el) =>
+					{
+						title.w(v => el.value = v);
 						el.addEventListener("input", () => title.v = el.value);
 					}),
 					$(errors, e => e.title && Span("recipe-edit__error-text", e.title)),
 				]),
 				Div("recipe-edit__field", [
 					initEl("label", "recipe-edit__label", "Описание *"),
-					initEl("textarea", "recipe-edit__textarea", undefined, (el: HTMLTextAreaElement) => {
-						el.value = description.v;
+					initEl("textarea", "recipe-edit__textarea", undefined, (el: HTMLTextAreaElement) =>
+					{
+						description.w(v => el.value = v);
 						el.placeholder = "Опишите рецепт...";
 						el.addEventListener("input", () => description.v = el.value);
 					}),
@@ -121,22 +190,41 @@ export default function render({ id }: { id?: string }) {
 				]),
 				Div("recipe-edit__field", [
 					initEl("label", "recipe-edit__label", "Категория *"),
-					initEl("select", "recipe-edit__select", undefined, (el: HTMLSelectElement) => {
+					initEl("select", "recipe-edit__select", undefined, (el: HTMLSelectElement) =>
+					{
 						el.innerHTML = `<option value="">Выберите категорию</option>`;
-						$(categories, c => {
-							if (c.data) {
-								c.data.forEach(cat => {
+						$(categories, c =>
+						{
+							if (c.data)
+							{
+								c.data.forEach(cat =>
+								{
 									const option = document.createElement("option");
 									option.value = cat.id.toString();
 									option.textContent = cat.name;
 									el.appendChild(option);
 								});
-								if (categoryId.v) {
+								// Set initial value after options are added
+								if (categoryId.v)
+								{
 									el.value = categoryId.v.toString();
 								}
 							}
 						});
-						el.addEventListener("change", () => {
+						// React to categoryId changes
+						$(categoryId, id =>
+						{
+							if (id)
+							{
+								el.value = id.toString();
+							}
+							else
+							{
+								el.value = "";
+							}
+						});
+						el.addEventListener("change", () =>
+						{
 							categoryId.v = el.value ? parseInt(el.value) : null;
 						});
 					}),
@@ -145,8 +233,9 @@ export default function render({ id }: { id?: string }) {
 				Div("recipe-edit__row", [
 					Div("recipe-edit__field", [
 						initEl("label", "recipe-edit__label", "Сложность (1-5)"),
-						Input([], "number", "3", (el) => {
-							el.value = difficulty.v.toString();
+						Input([], "number", "3", (el) =>
+						{
+							difficulty.w(v => el.value = v.toString());
 							el.min = "1";
 							el.max = "5";
 							el.addEventListener("input", () => difficulty.v = parseInt(el.value) || 3);
@@ -155,8 +244,9 @@ export default function render({ id }: { id?: string }) {
 					]),
 					Div("recipe-edit__field", [
 						initEl("label", "recipe-edit__label", "Активное время (мин)"),
-						Input([], "number", "30", (el) => {
-							el.value = activeTime.v.toString();
+						Input([], "number", "30", (el) =>
+						{
+							activeTime.w(v => el.value = v.toString());
 							el.min = "1";
 							el.addEventListener("input", () => activeTime.v = parseInt(el.value) || 30);
 						}),
@@ -164,8 +254,9 @@ export default function render({ id }: { id?: string }) {
 					]),
 					Div("recipe-edit__field", [
 						initEl("label", "recipe-edit__label", "Общее время (мин)"),
-						Input([], "number", "60", (el) => {
-							el.value = totalTime.v.toString();
+						Input([], "number", "60", (el) =>
+						{
+							totalTime.w(v => el.value = v.toString());
 							el.min = "1";
 							el.addEventListener("input", () => totalTime.v = parseInt(el.value) || 60);
 						}),
@@ -174,25 +265,40 @@ export default function render({ id }: { id?: string }) {
 				]),
 				Div("recipe-edit__field", [
 					initEl("label", "recipe-edit__label", "Статус"),
-					initEl("select", "recipe-edit__select", undefined, (el: HTMLSelectElement) => {
+					initEl("select", "recipe-edit__select", undefined, (el: HTMLSelectElement) =>
+					{
 						const options = [
 							{ value: "draft", label: "Черновик" },
 							{ value: "published", label: "Опубликован" },
 						];
-						options.forEach(opt => {
+						options.forEach(opt =>
+						{
 							const option = document.createElement("option");
 							option.value = opt.value;
 							option.textContent = opt.label;
 							el.appendChild(option);
 						});
-						el.value = status.v;
-						el.addEventListener("change", () => {
+						status.w(v => el.value = v);
+						el.addEventListener("change", () =>
+						{
 							status.v = el.value as any;
 						});
 					}),
 				]),
+				Div("recipe-edit__field", [
+					initEl("label", "recipe-edit__label", "Ингредиенты"),
+					$(ingredients, ingList => IngredientPicker({
+						initialIngredients: ingList,
+						onChange: (newIngredients) =>
+						{
+							ingredients.v = newIngredients;
+						},
+						searchPlaceholder: "Начните вводить название ингредиента...",
+					})),
+				]),
 				Div("recipe-edit__actions", [
-					Button([], "Отмена", () => {
+					Button([], "Отмена", () =>
+					{
 						if (recipeId) toPage("recipe", { id: String(recipeId) });
 						else toPage("index");
 					}),

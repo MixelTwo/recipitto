@@ -449,7 +449,7 @@ export function If<T>(state: State<T>, t: ElChildren | (() => ElChildren), f?: E
 	let els = state.v ? getNodesT() : getNodesF();
 	state.addListener((v, pv) =>
 	{
-		if (!!v == !!pv) return;
+		if (v == pv) return;
 		const newEls = v ? getNodesT() : getNodesF();
 		const pastNode = els[0];
 		const parent = pastNode?.parentNode;

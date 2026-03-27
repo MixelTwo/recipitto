@@ -174,6 +174,34 @@ export const query_recipe_ingredients = (recipe_id: number) => query<RecipeIngre
     []
 );
 
+// Recipe ingredients mutations
+export const mutate_add_recipe_ingredient = (recipe_id: number) => query<RecipeIngredientDict, [RecipeIngredientRequest]>(
+    null,
+    async (data: RecipeIngredientRequest) =>
+    {
+        const ingredient = await fetchJsonPost<RecipeIngredientDict>(`/api/recipes/${recipe_id}/ingredients`, data);
+        return ingredient;
+    }
+);
+
+export const mutate_update_recipe_ingredient = (recipe_id: number, ingredient_id: number) => query<RecipeIngredientDict, [RecipeIngredientUpdateRequest]>(
+    null,
+    async (data: RecipeIngredientUpdateRequest) =>
+    {
+        const ingredient = await fetchJsonPatch<RecipeIngredientDict>(`/api/recipes/${recipe_id}/ingredients/${ingredient_id}`, data);
+        return ingredient;
+    }
+);
+
+export const mutate_delete_recipe_ingredient = (recipe_id: number, ingredient_id: number) => query<boolean, []>(
+    null,
+    async () =>
+    {
+        await fetchJsonDelete(`/api/recipes/${recipe_id}/ingredients/${ingredient_id}`);
+        return true;
+    }
+);
+
 export const mutate_create_comment = (recipe_id: number) => query<CommentDict, [string]>(
     null,
     async (text: string) =>

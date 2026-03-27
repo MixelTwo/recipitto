@@ -40,6 +40,7 @@ export interface RecipeDict
 	active_time: number;
 	author: string;
 	category: string;
+	category_id: number;
 	created_at: string;
 	description: string;
 	difficulty: number;
