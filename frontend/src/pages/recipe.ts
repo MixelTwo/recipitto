@@ -16,6 +16,7 @@ import
 import Spinner from "../cmps/spinner.js";
 import IngredientList from "../cmps/ingredient-list.js";
 import RecipeSteps from "../cmps/recipe-steps.js";
+import RatingWidget from "../cmps/rating-widget.js";
 
 export default function render({ id }: { id: string })
 {
@@ -81,7 +82,12 @@ export default function render({ id }: { id: string })
 								Span([], `Сложность: ${data.difficulty}/5`),
 								Span([], `Активное время: ${data.active_time} мин`),
 								Span([], `Общее время: ${data.total_time} мин`),
-								Span([], `Рейтинг: ★ ${data.rating} (${data.vote_count} голосов)`),
+								RatingWidget({
+									recipeId: recipeId,
+									initialRating: data.rating,
+									initialCount: data.vote_count,
+									interactive: true,
+								}),
 								Span([], `Статус: ${data.status === "published" ? "Опубликован" : "Черновик"}`),
 							]),
 						]),

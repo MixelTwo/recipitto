@@ -4,6 +4,7 @@ import { toPage } from "../main.js";
 import { setPageTitle } from "../utils.js";
 import { query_recipes, query_recipe_categories } from "../api/client.js";
 import Spinner from "../cmps/spinner.js";
+import RatingStars from "../cmps/rating-stars.js";
 
 export default function render()
 {
@@ -42,7 +43,13 @@ export default function render()
 								Div("recipe-card__meta", [
 									Span([], `${recipe.active_time} мин активного времени`),
 									Span([], `${recipe.difficulty}/5 сложность`),
-									Span([], `★ ${recipe.rating} (${recipe.vote_count})`),
+									RatingStars({
+										rating: recipe.rating,
+										voteCount: recipe.vote_count,
+										size: "small",
+										showCount: true,
+										showNumber: false,
+									}),
 								]),
 								A([], "Подробнее", `/recipe/${recipe.id}`, () => toPage("recipe", { id: String(recipe.id) })),
 							]),

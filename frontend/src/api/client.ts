@@ -334,4 +334,52 @@ export const query_recipe_steps = (recipe_id: number) => query<RecipeStepDict[],
     []
 );
 
+// Ratings
+export const query_recipe_ratings = (recipe_id: number) => query<RatingStatsResponse, []>(
+    `recipe_${recipe_id}_ratings`,
+    async () =>
+    {
+        const stats = await fetchJsonGet<RatingStatsResponse>(`/api/recipes/${recipe_id}/ratings`);
+        return stats;
+    },
+    []
+);
+
+export const query_my_rating = (recipe_id: number) => query<RatingResponse | null, []>(
+    `recipe_${recipe_id}_my_rating`,
+    async () =>
+    {
+        try
+        {
+            const rating = await fetchJsonGet<RatingResponse>(`/api/recipes/${recipe_id}/ratings/me`);
+            return rating;
+        }
+        catch (e)
+        {
+            if (e instanceof FetchError && e.status === 404)
+                return null;
+            throw e;
+        }
+    },
+    []
+);
+
+export const mutate_rate_recipe = (recipe_id: number) => query<RatingResponse, [RatingRequest]>(
+    null,
+    async (data: RatingRequest) =>
+    {
+        const rating = await fetchJsonPost<RatingResponse>(`/api/recipes/${recipe_id}/ratings`, data);
+        return rating;
+    }
+);
+
+export const mutate_delete_rating = (recipe_id: number) => query<boolean, []>(
+    null,
+    async () =>
+    {
+        await fetchJsonDelete(`/api/recipes/${recipe_id}/ratings`);
+        return true;
+    }
+);
+
 // Note: More endpoints can be added as needed.

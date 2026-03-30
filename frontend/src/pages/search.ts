@@ -4,8 +4,10 @@ import { toPage } from "../main.js";
 import { setPageTitle } from "../utils.js";
 import { query_search_recipes, query_recipe_categories } from "../api/client.js";
 import Spinner from "../cmps/spinner.js";
+import RatingStars from "../cmps/rating-stars.js";
 
-export default function render() {
+export default function render()
+{
 	setPageTitle("Поиск рецептов");
 
 	const categories = query_recipe_categories();
@@ -34,7 +36,8 @@ export default function render() {
 	const searchQuery = $(buildSearchQuery());
 	const searchResults = query_search_recipes(searchQuery.v);
 
-	const performSearch = () => {
+	const performSearch = () =>
+	{
 		searchQuery.v = buildSearchQuery();
 	};
 
@@ -44,38 +47,47 @@ export default function render() {
 				initEl("h2", "search-page__sidebar-title", "Фильтры"),
 				Div("search-filter", [
 					initEl("label", "search-filter__label", "Поиск по тексту"),
-					Input([], "text", "Название или ингредиент...", (el) => {
+					Input([], "text", "Название или ингредиент...", (el) =>
+					{
 						el.value = searchText.v;
 						el.addEventListener("input", () => searchText.v = el.value);
 					}),
 				]),
 				Div("search-filter", [
 					initEl("label", "search-filter__label", "Категория"),
-					initEl("select", "search-filter__select", undefined, (el: HTMLSelectElement) => {
+					initEl("select", "search-filter__select", undefined, (el: HTMLSelectElement) =>
+					{
 						el.innerHTML = `<option value="">Все категории</option>`;
-						$(categories, c => {
-							if (c.data) {
-								c.data.forEach(cat => {
+						$(categories, c =>
+						{
+							if (c.data)
+							{
+								c.data.forEach(cat =>
+								{
 									const option = document.createElement("option");
 									option.value = cat.id.toString();
 									option.textContent = cat.name;
 									el.appendChild(option);
 								});
-								if (selectedCategory.v) {
+								if (selectedCategory.v)
+								{
 									el.value = selectedCategory.v.toString();
 								}
 							}
 						});
-						el.addEventListener("change", () => {
+						el.addEventListener("change", () =>
+						{
 							selectedCategory.v = el.value ? parseInt(el.value) : null;
 						});
 					}),
 				]),
 				Div("search-filter", [
 					initEl("label", "search-filter__label", "Макс. активное время (мин)"),
-					Input([], "number", "Не ограничено", (el) => {
+					Input([], "number", "Не ограничено", (el) =>
+					{
 						el.value = maxActiveTime.v?.toString() || "";
-						el.addEventListener("input", () => {
+						el.addEventListener("input", () =>
+						{
 							const val = el.value ? parseInt(el.value) : null;
 							maxActiveTime.v = val && val > 0 ? val : null;
 						});
@@ -83,58 +95,68 @@ export default function render() {
 				]),
 				Div("search-filter", [
 					initEl("label", "search-filter__label", "Сложность (1-5)"),
-					initEl("select", "search-filter__select", undefined, (el: HTMLSelectElement) => {
+					initEl("select", "search-filter__select", undefined, (el: HTMLSelectElement) =>
+					{
 						const options = ["Любая", "1", "2", "3", "4", "5"];
-						options.forEach((opt, idx) => {
+						options.forEach((opt, idx) =>
+						{
 							const option = document.createElement("option");
 							option.value = idx === 0 ? "" : idx.toString();
 							option.textContent = opt;
 							el.appendChild(option);
 						});
 						if (difficulty.v) el.value = difficulty.v.toString();
-						el.addEventListener("change", () => {
+						el.addEventListener("change", () =>
+						{
 							difficulty.v = el.value ? parseInt(el.value) : null;
 						});
 					}),
 				]),
 				Div("search-filter", [
 					initEl("label", "search-filter__label", "Сортировка"),
-					initEl("select", "search-filter__select", undefined, (el: HTMLSelectElement) => {
+					initEl("select", "search-filter__select", undefined, (el: HTMLSelectElement) =>
+					{
 						const options = [
 							{ value: "relevance", label: "По релевантности" },
 							{ value: "rating", label: "По рейтингу" },
 							{ value: "date", label: "По дате" },
 						];
-						options.forEach(opt => {
+						options.forEach(opt =>
+						{
 							const option = document.createElement("option");
 							option.value = opt.value;
 							option.textContent = opt.label;
 							el.appendChild(option);
 						});
 						el.value = sortBy.v;
-						el.addEventListener("change", () => {
+						el.addEventListener("change", () =>
+						{
 							sortBy.v = el.value as any;
 						});
 					}),
-					initEl("select", "search-filter__select", undefined, (el: HTMLSelectElement) => {
+					initEl("select", "search-filter__select", undefined, (el: HTMLSelectElement) =>
+					{
 						const options = [
 							{ value: "desc", label: "По убыванию" },
 							{ value: "asc", label: "По возрастанию" },
 						];
-						options.forEach(opt => {
+						options.forEach(opt =>
+						{
 							const option = document.createElement("option");
 							option.value = opt.value;
 							option.textContent = opt.label;
 							el.appendChild(option);
 						});
 						el.value = sortOrder.v;
-						el.addEventListener("change", () => {
+						el.addEventListener("change", () =>
+						{
 							sortOrder.v = el.value as any;
 						});
 					}),
 				]),
 				Button([], "Применить фильтры", performSearch),
-				Button([], "Сбросить", () => {
+				Button([], "Сбросить", () =>
+				{
 					searchText.v = "";
 					selectedCategory.v = null;
 					maxActiveTime.v = null;
@@ -157,7 +179,8 @@ export default function render() {
 						: Div("search-page__grid", r.data.results.map(recipe => (
 							Div("recipe-card", [
 								recipe.main_image
-									? initEl("img", "recipe-card__image", undefined, (el: HTMLImageElement) => {
+									? initEl("img", "recipe-card__image", undefined, (el: HTMLImageElement) =>
+									{
 										el.src = recipe.main_image!;
 										el.alt = recipe.title;
 									})
@@ -168,7 +191,13 @@ export default function render() {
 									Div("recipe-card__meta", [
 										Span([], `${recipe.active_time} мин активного времени`),
 										Span([], `${recipe.difficulty}/5 сложность`),
-										Span([], `★ ${recipe.rating} (${recipe.vote_count})`),
+										RatingStars({
+											rating: recipe.rating,
+											voteCount: recipe.vote_count,
+											size: "small",
+											showCount: true,
+											showNumber: false,
+										}),
 									]),
 									A([], "Подробнее", `/recipe/${recipe.id}`, () => toPage("recipe", { id: String(recipe.id) })),
 								]),
