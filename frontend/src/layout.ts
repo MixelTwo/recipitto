@@ -1,17 +1,28 @@
-import { query_auth, query_logout, query_user } from "./api/client.js";
+import { query_logout, query_user } from "./api/client.js";
 import type { User } from "./api/types.js";
 import Spinner from "./cmps/spinner.js";
+import LoginForm from "./cmps/login-form.js";
 import { $, A, Button, Div, If, initEl, SetContent, Span, type ElChildren } from "./littleLib.js";
 import { toPage } from "./main.js";
 
 export default function Layout(children: ElChildren, permission?: string)
 {
 	const user = query_user();
-	const login = query_auth();
 	const logout = query_logout();
+	const showLoginModal = $(false);
+
 	SetContent(document.body, Div("layout", [
-		$(login, v => v.isLoading && Spinner()),
 		$(logout, v => v.isLoading && Spinner()),
+		If(showLoginModal, () => LoginForm({
+			onSuccess: () =>
+			{
+				showLoginModal.v = false;
+			},
+			onCancel: () =>
+			{
+				showLoginModal.v = false;
+			},
+		})),
 		Div("layout__header", [
 			Div([], [
 				A("layout__logo", "Logo", "/", () => toPage("index")),
@@ -23,14 +34,11 @@ export default function Layout(children: ElChildren, permission?: string)
 					A([], "Админка", "/admin", () => toPage("admin")),
 				]),
 				Div("layout__user", [
-					If($(login, v => v.error), () => [
-						Span([], login.v?.error?.msg),
-					]),
 					If($(user, v => v.data), [
 						Span([], $(user, v => v.data?.name)),
 						Button([], "Выйти", () => logout.v.fetch()),
 					], [
-						Button([], "Войти", () => login.v.fetch("123", "123")),
+						Button([], "Войти", () => showLoginModal.v = true),
 					])
 				])
 			]),
