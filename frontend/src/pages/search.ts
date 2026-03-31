@@ -5,6 +5,7 @@ import { setPageTitle } from "../utils.js";
 import { query_search_recipes, query_recipe_categories } from "../api/client.js";
 import Spinner from "../cmps/spinner.js";
 import RatingStars from "../cmps/rating-stars.js";
+import IngredientFilter, { type IngredientFilterMode } from "../cmps/ingredient-filter.js";
 
 export default function render()
 {
@@ -19,6 +20,21 @@ export default function render()
 	const difficulty = $<number | null>(null);
 	const sortBy = $<"relevance" | "rating" | "date">("relevance");
 	const sortOrder = $<"asc" | "desc">("desc");
+	// Ingredient filter state
+	const ingredientsInclude = $<number[]>([]);
+	const ingredientsExclude = $<number[]>([]);
+	const ingredientFilterMode = $<IngredientFilterMode>("contains_any");
+
+	// Ingredient filter component instance
+	const ingredientFilter = IngredientFilter({
+		initialSelected: [],
+		onChange: (filter) =>
+		{
+			ingredientsInclude.v = filter.include;
+			ingredientsExclude.v = filter.exclude;
+			ingredientFilterMode.v = filter.mode;
+		},
+	});
 
 	// Function to build search query
 	const buildSearchQuery = () => ({
@@ -26,6 +42,8 @@ export default function render()
 		category_id: selectedCategory.v || undefined,
 		max_active_time: maxActiveTime.v || undefined,
 		difficulty: difficulty.v || undefined,
+		ingredients_include: ingredientsInclude.v.length > 0 ? ingredientsInclude.v : undefined,
+		ingredients_exclude: ingredientsExclude.v.length > 0 ? ingredientsExclude.v : undefined,
 		sort_by: sortBy.v,
 		sort_order: sortOrder.v,
 		page: 1,
@@ -113,6 +131,10 @@ export default function render()
 					}),
 				]),
 				Div("search-filter", [
+					initEl("label", "search-filter__label", "Фильтр по ингредиентам"),
+					ingredientFilter.el,
+				]),
+				Div("search-filter", [
 					initEl("label", "search-filter__label", "Сортировка"),
 					initEl("select", "search-filter__select", undefined, (el: HTMLSelectElement) =>
 					{
@@ -161,6 +183,11 @@ export default function render()
 					selectedCategory.v = null;
 					maxActiveTime.v = null;
 					difficulty.v = null;
+					ingredientsInclude.v = [];
+					ingredientsExclude.v = [];
+					ingredientFilterMode.v = "contains_any";
+					// Reset component internal state
+					ingredientFilter.reset();
 					sortBy.v = "relevance";
 					sortOrder.v = "desc";
 					performSearch();
