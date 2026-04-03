@@ -1,4 +1,4 @@
-from bafser import JsonObj, JsonOpt, Undefined, abort_if_none, doc_api, jsonify_list, protected_route, response_msg
+from bafser import Image, ImageJson, JsonObj, JsonOpt, Undefined, abort_if_none, doc_api, jsonify_list, protected_route, response_msg
 from flask import Blueprint
 
 from data._operations import Operations
@@ -12,13 +12,13 @@ bp = Blueprint("recipe_step", __name__)
 class CreateRecipeStepJson(JsonObj):
     step_number: int
     text: str
-    image_id: JsonOpt[int] = Undefined
+    image: JsonOpt[ImageJson | None] = Undefined
 
 
 class UpdateRecipeStepJson(JsonObj):
     step_number: JsonOpt[int] = Undefined
     text: JsonOpt[str] = Undefined
-    image_id: JsonOpt[int] = Undefined
+    image: JsonOpt[ImageJson | None] = Undefined
 
 
 @bp.get("/api/recipes/<int:recipe_id>/steps")
@@ -47,11 +47,22 @@ def create_step(recipe_id: int):
     if not User.current.has_operation(Operations.admin_moderate_recipes) and recipe.author_id != User.current.id:
         return response_msg("You can only edit your own recipes", 403)
     req = CreateRecipeStepJson.get_from_req()
+    image_id = None
+    if Undefined.defined(req.image):
+        value = req.image
+        if value is None:
+            image_id = None
+        else:
+            image, error = Image.new(User.current, value)
+            if error:
+                return response_msg(f"Image upload failed: {error}", 400)
+            assert image is not None
+            image_id = image.id
     step = RecipeStep.new(
         recipe_id=recipe_id,
         step_number=req.step_number,
         text=req.text,
-        image_id=Undefined.default(req.image_id, None),
+        image_id=image_id,
     )
     return step.get_dict()
 
@@ -68,10 +79,19 @@ def update_step(recipe_id: int, step_id: int):
     if not User.current.has_operation(Operations.admin_moderate_recipes) and recipe.author_id != User.current.id:
         return response_msg("You can only edit your own recipes", 403)
     req = UpdateRecipeStepJson.get_from_req()
+    image_id = None
+    if Undefined.defined(req.image):
+        value = req.image
+        if value is not None:
+            image, error = Image.new(User.current, value)
+            if error:
+                return response_msg(f"Image upload failed: {error}", 400)
+            assert image is not None
+            image_id = image.id
     step.update(
         step_number=Undefined.default(req.step_number, None),
         text=Undefined.default(req.text, None),
-        image_id=Undefined.default(req.image_id, None),
+        image_id=image_id,
     )
     return step.get_dict()
 

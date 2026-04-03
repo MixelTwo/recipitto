@@ -1,4 +1,4 @@
-from bafser import Image, JsonObj, abort_if_none, doc_api, jsonify_list, protected_route, response_msg
+from bafser import Image, ImageJson, JsonObj, abort_if_none, doc_api, jsonify_list, protected_route, response_msg
 from flask import Blueprint
 
 from data._operations import Operations
@@ -10,7 +10,7 @@ bp = Blueprint("recipe_image", __name__)
 
 
 class CreateRecipeImageJson(JsonObj):
-    image_id: int
+    image: ImageJson
 
 
 @bp.get("/api/recipes/<int:recipe_id>/images")
@@ -37,15 +37,14 @@ def create_image(recipe_id: int):
     if not User.current.has_operation(Operations.admin_moderate_recipes) and recipe.author_id != User.current.id:
         return response_msg("You can only edit your own recipes", 403)
     req = CreateRecipeImageJson.get_from_req()
-    # Check if image exists
-    abort_if_none(Image.get2(req.image_id), "image")
-    # Check if already associated
-    existing = RecipeImage.get_by_recipe_and_image(recipe_id, req.image_id)
-    if existing:
-        return response_msg("Image already added to recipe", 400)
+    # Create new image
+    image, error = Image.new(User.current, req.image)
+    if error:
+        return response_msg(f"Image upload failed: {error}", 400)
+    assert image is not None
     recipe_image = RecipeImage.new(
         recipe_id=recipe_id,
-        image_id=req.image_id,
+        image_id=image.id,
         creator=User.current,
     )
     return recipe_image.get_dict()

@@ -1,12 +1,12 @@
 from typing import TypedDict
 
-from bafser import abort_if_none, doc_api, jsonify_list, protected_route, response_msg, use_db_sess
-from flask import Blueprint, Response
-from sqlalchemy.orm import Session
+from bafser import abort_if_none, doc_api, protected_route, response_msg, use_db_sess
+from flask import Blueprint, Response, jsonify
+from sqlalchemy.orm import Session, joinedload
 
 from data._operations import Operations
 from data.favorite import Favorite, FavoriteDict
-from data.recipe import Recipe
+from data.recipe import Recipe, RecipeDict
 from data.user import User
 
 bp = Blueprint("favorite", __name__)
@@ -17,12 +17,28 @@ class FavoriteCheckDict(TypedDict):
     favorite: FavoriteDict | None
 
 
+class FavoriteWithRecipeDict(TypedDict):
+    recipe: RecipeDict
+    added_at: str
+
+
 @bp.get("/api/favorites")
-@doc_api(res=list[FavoriteDict], desc="List current user's favorite recipes")
+@doc_api(res=list[FavoriteWithRecipeDict], desc="List current user's favorite recipes")
 @protected_route(perms=Operations.favorite_view)
-def list_favorites():
-    favorites = Favorite.get_by_user(User.current.id)
-    return jsonify_list(favorites)
+@use_db_sess
+def list_favorites(db_sess: Session):
+    favorites = (
+        db_sess.query(Favorite).options(joinedload(Favorite.recipe)).filter_by(user_id=User.current.id).order_by(Favorite.added_at.desc()).all()
+    )
+    result: list[FavoriteWithRecipeDict] = []
+    for fav in favorites:
+        result.append(
+            {
+                "recipe": fav.recipe.get_dict(),
+                "added_at": fav.added_at.isoformat(),
+            }
+        )
+    return jsonify(result)
 
 
 @bp.get("/api/recipes/<int:recipe_id>/favorite")
