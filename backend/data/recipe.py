@@ -114,6 +114,10 @@ class Recipe(SqlAlchemyBase, ObjMixin):
         if category_id is not None:
             self.category_id = category_id
         if main_image_id is not None:
+            if main_image_id != self.main_image_id:
+                old_image = self.main_image
+                if old_image:
+                    old_image.delete2(actor=actor)
             self.main_image_id = main_image_id
         if status is not None:
             self.status = status

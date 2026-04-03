@@ -1,4 +1,4 @@
-from bafser import JsonObj, JsonOpt, Undefined, abort_if_none, doc_api, jsonify_list, protected_route, response_msg
+from bafser import Image, ImageJson, JsonObj, JsonOpt, Undefined, abort_if_none, doc_api, jsonify_list, protected_route, response_msg
 from flask import Blueprint
 
 from data._operations import Operations
@@ -15,7 +15,7 @@ class CreateRecipeJson(JsonObj):
     total_time: int
     difficulty: int
     category_id: int
-    main_image_id: JsonOpt[int] = Undefined
+    main_image: JsonOpt[ImageJson | None] = Undefined
     status: JsonOpt[TRecipeStatus] = Undefined
 
 
@@ -26,7 +26,7 @@ class UpdateRecipeJson(JsonObj):
     total_time: JsonOpt[int] = Undefined
     difficulty: JsonOpt[int] = Undefined
     category_id: JsonOpt[int] = Undefined
-    main_image_id: JsonOpt[int] = Undefined
+    main_image: JsonOpt[ImageJson | None] = Undefined
     status: JsonOpt[TRecipeStatus] = Undefined
 
 
@@ -57,6 +57,15 @@ def create_recipe():
             status = RecipeStatus(req.status)
         except ValueError:
             return response_msg("Invalid status", 400)
+    main_image_id = None
+    if Undefined.defined(req.main_image):
+        value = req.main_image
+        if value is not None:
+            image, error = Image.new(User.current, value)
+            if error:
+                return response_msg(f"Image upload failed: {error}", 400)
+            assert image is not None
+            main_image_id = image.id
     recipe = Recipe.new(
         title=req.title,
         description=req.description,
@@ -65,7 +74,7 @@ def create_recipe():
         difficulty=req.difficulty,
         author=User.current,
         category_id=req.category_id,
-        main_image_id=Undefined.default(req.main_image_id),
+        main_image_id=main_image_id,
         status=status or RecipeStatus.DRAFT,
     )
     return recipe.get_dict()
@@ -87,6 +96,15 @@ def update_recipe(recipe_id: int):
             status = RecipeStatus(req.status)
         except ValueError:
             return response_msg("Invalid status", 400)
+    main_image_id = None
+    if Undefined.defined(req.main_image):
+        value = req.main_image
+        if value is not None:
+            image, error = Image.new(User.current, value)
+            if error:
+                return response_msg(f"Image upload failed: {error}", 400)
+            assert image is not None
+            main_image_id = image.id
     recipe.update(
         title=Undefined.default(req.title, None),
         description=Undefined.default(req.description, None),
@@ -94,7 +112,7 @@ def update_recipe(recipe_id: int):
         total_time=Undefined.default(req.total_time, None),
         difficulty=Undefined.default(req.difficulty, None),
         category_id=Undefined.default(req.category_id, None),
-        main_image_id=Undefined.default(req.main_image_id, None),
+        main_image_id=main_image_id,
         status=status,
     )
     return recipe.get_dict()

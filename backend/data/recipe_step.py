@@ -50,6 +50,10 @@ class RecipeStep(SqlAlchemyBase, ObjMixin):
         if text is not None:
             self.text = text
         if image_id is not None:
+            if image_id != self.image_id:
+                old_image = self.image
+                if old_image:
+                    old_image.delete2(actor=actor)
             self.image_id = image_id
         Log.updated(self, actor)
 
