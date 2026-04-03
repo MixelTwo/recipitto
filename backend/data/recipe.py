@@ -75,7 +75,7 @@ class Recipe(SqlAlchemyBase, ObjMixin):
     main_image: Mapped[Image | None] = relationship(foreign_keys=[main_image_id], lazy="joined", init=False)
 
     @validates("title")
-    def update_title_normalized(self, key: str, value: str):
+    def update_title_normalized(self, key: str, value: str) -> str:
         """Automatically update the normalized title when title changes.
 
         Args:
@@ -83,7 +83,7 @@ class Recipe(SqlAlchemyBase, ObjMixin):
             value: New title value.
 
         Returns:
-            The unchanged value (as required by @validates).
+            str: The unchanged value (as required by @validates).
         """
         self.title_normalized = normalize_for_search(value)
         return value
@@ -101,7 +101,7 @@ class Recipe(SqlAlchemyBase, ObjMixin):
         main_image_id: int | None = None,
         *,
         creator: User | None = None,
-    ):
+    ) -> "Recipe":
         """Create a new recipe record.
 
         Args:
@@ -117,7 +117,7 @@ class Recipe(SqlAlchemyBase, ObjMixin):
             creator: User who performs the creation (for logging).
 
         Returns:
-            The newly created Recipe instance.
+            Recipe: The newly created Recipe instance.
         """
         obj = Recipe(
             title=title,

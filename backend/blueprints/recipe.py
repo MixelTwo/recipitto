@@ -1,5 +1,5 @@
 from bafser import Image, ImageJson, JsonObj, JsonOpt, Undefined, abort_if_none, doc_api, jsonify_list, protected_route, response_msg
-from flask import Blueprint
+from flask import Blueprint, Response
 
 from data._operations import Operations
 from data.recipe import Recipe, RecipeDict, RecipeStatus, TRecipeStatus
@@ -60,11 +60,11 @@ class UpdateRecipeJson(JsonObj):
 
 @bp.get("/api/recipes")
 @doc_api(res=list[RecipeDict], desc="List recipes with optional filtering")
-def list_recipes():
+def list_recipes() -> Response:
     """Retrieve a list of recipes.
 
     Returns:
-        JSON array of recipe objects.
+        Response: JSON array of recipe objects.
 
     Note:
         Filtering, sorting, and pagination are not yet implemented.
@@ -76,17 +76,17 @@ def list_recipes():
 
 @bp.get("/api/recipes/<int:recipe_id>")
 @doc_api(res=RecipeDict, desc="Get a recipe by ID")
-def get_recipe(recipe_id: int):
+def get_recipe(recipe_id: int) -> RecipeDict:
     """Retrieve a single recipe by its ID.
 
     Args:
         recipe_id: The ID of the recipe to retrieve.
 
     Returns:
-        The recipe object as JSON.
+        dict: The recipe object as JSON.
 
     Raises:
-        404 error if recipe not found.
+        HTTPException: 404 error if recipe not found.
     """
     recipe = abort_if_none(Recipe.get2(recipe_id), "recipe")
     return recipe.get_dict()
@@ -95,7 +95,7 @@ def get_recipe(recipe_id: int):
 @bp.post("/api/recipes")
 @doc_api(req=CreateRecipeJson, res=RecipeDict, desc="Create a new recipe")
 @protected_route(perms=Operations.recipe_create)
-def create_recipe():
+def create_recipe() -> RecipeDict | Response:
     """Create a new recipe.
 
     Requires authentication and the `recipe_create` permission.
@@ -103,11 +103,11 @@ def create_recipe():
     Request body must conform to CreateRecipeJson schema.
 
     Returns:
-        The newly created recipe object.
+        dict: The newly created recipe object.
 
     Raises:
-        400 if validation fails (invalid status, image upload error).
-        403 if user lacks permission.
+        HTTPException: 400 if validation fails (invalid status, image upload error).
+        HTTPException: 403 if user lacks permission.
     """
     req = CreateRecipeJson.get_from_req()
     # Validate status
@@ -143,7 +143,7 @@ def create_recipe():
 @bp.patch("/api/recipes/<int:recipe_id>")
 @doc_api(req=UpdateRecipeJson, res=RecipeDict, desc="Update a recipe")
 @protected_route(perms=Operations.recipe_update)
-def update_recipe(recipe_id: int):
+def update_recipe(recipe_id: int) -> RecipeDict | Response:
     """Update an existing recipe.
 
     Requires authentication and the `recipe_update` permission.
@@ -153,12 +153,12 @@ def update_recipe(recipe_id: int):
         recipe_id: The ID of the recipe to update.
 
     Returns:
-        The updated recipe object.
+        dict: The updated recipe object.
 
     Raises:
-        400 if validation fails (invalid status, image upload error).
-        403 if user lacks permission or is not the author/admin.
-        404 if recipe not found.
+        HTTPException: 400 if validation fails (invalid status, image upload error).
+        HTTPException: 403 if user lacks permission or is not the author/admin.
+        HTTPException: 404 if recipe not found.
     """
     req = UpdateRecipeJson.get_from_req()
     recipe = abort_if_none(Recipe.get2(recipe_id), "recipe")
@@ -197,7 +197,7 @@ def update_recipe(recipe_id: int):
 @bp.delete("/api/recipes/<int:recipe_id>")
 @doc_api(res=None, desc="Delete a recipe")
 @protected_route(perms=Operations.recipe_delete)
-def delete_recipe(recipe_id: int):
+def delete_recipe(recipe_id: int) -> tuple[str, int] | Response:
     """Delete a recipe.
 
     Requires authentication and the `recipe_delete` permission.
@@ -207,11 +207,11 @@ def delete_recipe(recipe_id: int):
         recipe_id: The ID of the recipe to delete.
 
     Returns:
-        Empty response with status 204 on success.
+        tuple: Empty response with status 204 on success.
 
     Raises:
-        403 if user lacks permission or is not the author/admin.
-        404 if recipe not found.
+        HTTPException: 403 if user lacks permission or is not the author/admin.
+        HTTPException: 404 if recipe not found.
     """
     recipe = abort_if_none(Recipe.get2(recipe_id), "recipe")
     # Check ownership: if user is not admin and not author, deny

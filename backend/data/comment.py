@@ -10,6 +10,18 @@ from data.recipe import Recipe
 
 
 class Comment(SqlAlchemyBase, ObjMixin):
+    """Database model representing a user comment on a recipe.
+
+    Attributes:
+        user_id: ID of the user who wrote the comment.
+        recipe_id: ID of the recipe being commented on.
+        text: Comment text content.
+        created_at: Timestamp when the comment was created.
+        updated_at: Timestamp when the comment was last updated.
+        user: Relationship to the User object.
+        recipe: Relationship to the Recipe object.
+    """
+
     __tablename__ = Tables.Comment
     __table_args__ = (
         Index("idx_comment_recipe_id", "recipe_id"),
@@ -32,7 +44,18 @@ class Comment(SqlAlchemyBase, ObjMixin):
         text: str,
         *,
         creator: User | None = None,
-    ):
+    ) -> "Comment":
+        """Create a new comment.
+
+        Args:
+            user_id: ID of the user who wrote the comment.
+            recipe_id: ID of the recipe being commented on.
+            text: Comment text content.
+            creator: User who is creating the comment (for logging). Defaults to None.
+
+        Returns:
+            Comment: The newly created comment instance.
+        """
         obj = Comment(
             user_id=user_id,
             recipe_id=recipe_id,
@@ -47,15 +70,35 @@ class Comment(SqlAlchemyBase, ObjMixin):
         *,
         actor: User | None = None,
     ):
+        """Update the comment's fields.
+
+        Args:
+            text: New comment text (optional).
+            actor: User who is performing the update (for logging). Defaults to None.
+        """
         if text is not None:
             self.text = text
         Log.updated(self, actor)
 
     @classmethod
     def get_by_recipe(cls, recipe_id: int, *, db_sess: Session | None = None) -> list["Comment"]:
+        """Retrieve all comments for a specific recipe.
+
+        Args:
+            recipe_id: ID of the recipe.
+            db_sess: Database session to use (optional).
+
+        Returns:
+            list[Comment]: List of comments, ordered by creation date descending.
+        """
         return list(cls.query2(db_sess=db_sess).filter_by(recipe_id=recipe_id).order_by(cls.created_at.desc()).all())
 
     def get_dict(self) -> "CommentDict":
+        """Convert the comment to a dictionary suitable for JSON serialization.
+
+        Returns:
+            CommentDict: Dictionary with id, user_id, recipe_id, text, and created_at.
+        """
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -66,6 +109,16 @@ class Comment(SqlAlchemyBase, ObjMixin):
 
 
 class CommentDict(TypedDict):
+    """Dictionary representation of a comment for API responses.
+
+    Attributes:
+        id: Comment ID.
+        user_id: ID of the user who wrote the comment.
+        recipe_id: ID of the recipe being commented on.
+        text: Comment text content.
+        created_at: ISO‑formatted timestamp of creation.
+    """
+
     id: int
     user_id: int
     recipe_id: int

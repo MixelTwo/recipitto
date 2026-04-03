@@ -1,5 +1,5 @@
 from bafser import JsonObj, JsonOpt, Undefined, abort_if_none, doc_api, jsonify_list, protected_route, response_msg
-from flask import Blueprint
+from flask import Blueprint, Response
 
 from data._operations import Operations
 from data.comment import Comment, CommentDict
@@ -31,17 +31,17 @@ class UpdateCommentJson(JsonObj):
 
 @bp.get("/api/recipes/<int:recipe_id>/comments")
 @doc_api(res=list[CommentDict], desc="List comments of a recipe")
-def list_comments(recipe_id: int):
+def list_comments(recipe_id: int) -> Response:
     """Retrieve all comments for a specific recipe.
 
     Args:
         recipe_id: ID of the recipe.
 
     Returns:
-        JSON array of comment objects.
+        Response: JSON array of comment objects.
 
     Raises:
-        404 if recipe not found.
+        HTTPException: 404 if recipe not found.
     """
     abort_if_none(Recipe.get2(recipe_id), "recipe")
     comments = Comment.get_by_recipe(recipe_id)
@@ -50,17 +50,17 @@ def list_comments(recipe_id: int):
 
 @bp.get("/api/comments/<int:comment_id>")
 @doc_api(res=CommentDict, desc="Get a comment by ID")
-def get_comment(comment_id: int):
+def get_comment(comment_id: int) -> CommentDict:
     """Retrieve a single comment by its ID.
 
     Args:
         comment_id: ID of the comment.
 
     Returns:
-        The comment object as JSON.
+        dict: The comment object as JSON.
 
     Raises:
-        404 if comment not found.
+        HTTPException: 404 if comment not found.
     """
     comment = abort_if_none(Comment.get2(comment_id), "comment")
     return comment.get_dict()
@@ -69,7 +69,7 @@ def get_comment(comment_id: int):
 @bp.post("/api/recipes/<int:recipe_id>/comments")
 @doc_api(req=CreateCommentJson, res=CommentDict, desc="Create a comment on a recipe")
 @protected_route(perms=Operations.comment_create)
-def create_comment(recipe_id: int):
+def create_comment(recipe_id: int) -> CommentDict:
     """Create a new comment on a recipe.
 
     Requires authentication and the `comment_create` permission.
@@ -78,11 +78,11 @@ def create_comment(recipe_id: int):
         recipe_id: ID of the recipe to comment on.
 
     Returns:
-        The newly created comment object.
+        dict: The newly created comment object.
 
     Raises:
-        404 if recipe not found.
-        403 if user lacks permission.
+        HTTPException: 404 if recipe not found.
+        HTTPException: 403 if user lacks permission.
     """
     abort_if_none(Recipe.get2(recipe_id), "recipe")
     req = CreateCommentJson.get_from_req()
@@ -97,7 +97,7 @@ def create_comment(recipe_id: int):
 @bp.patch("/api/comments/<int:comment_id>")
 @doc_api(req=UpdateCommentJson, res=CommentDict, desc="Update a comment")
 @protected_route(perms=Operations.comment_update)
-def update_comment(comment_id: int):
+def update_comment(comment_id: int) -> CommentDict | Response:
     """Update an existing comment.
 
     Requires authentication and the `comment_update` permission.
@@ -107,11 +107,11 @@ def update_comment(comment_id: int):
         comment_id: ID of the comment to update.
 
     Returns:
-        The updated comment object.
+        dict: The updated comment object.
 
     Raises:
-        404 if comment not found.
-        403 if user lacks permission or is not the author/admin.
+        HTTPException: 404 if comment not found.
+        HTTPException: 403 if user lacks permission or is not the author/admin.
     """
     comment = abort_if_none(Comment.get2(comment_id), "comment")
     # Check ownership: if user is not admin and not author, deny
@@ -127,7 +127,7 @@ def update_comment(comment_id: int):
 @bp.delete("/api/comments/<int:comment_id>")
 @doc_api(res=None, desc="Delete a comment")
 @protected_route(perms=Operations.comment_delete)
-def delete_comment(comment_id: int):
+def delete_comment(comment_id: int) -> tuple[str, int] | Response:
     """Delete a comment.
 
     Requires authentication and the `comment_delete` permission.
@@ -137,11 +137,11 @@ def delete_comment(comment_id: int):
         comment_id: ID of the comment to delete.
 
     Returns:
-        Empty response with status 204 on success.
+        tuple: Empty response with status 204 on success.
 
     Raises:
-        404 if comment not found.
-        403 if user lacks permission or is not the author/admin.
+        HTTPException: 404 if comment not found.
+        HTTPException: 403 if user lacks permission or is not the author/admin.
     """
     comment = abort_if_none(Comment.get2(comment_id), "comment")
     # Check ownership: if user is not admin and not author, deny

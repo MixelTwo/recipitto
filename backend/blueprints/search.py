@@ -13,6 +13,15 @@ bp = Blueprint("search", __name__)
 
 
 class SearchRecipesResponse(TypedDict):
+    """Response schema for recipe search.
+
+    Attributes:
+        total: Total number of matching recipes (ignoring pagination).
+        page: Current page number (1‑based).
+        per_page: Number of recipes per page.
+        results: List of recipe objects for the current page.
+    """
+
     total: int
     page: int
     per_page: int
@@ -23,6 +32,33 @@ class SearchRecipesResponse(TypedDict):
 @doc_api(res=SearchRecipesResponse, desc="Search recipes with filters and sorting")
 @use_db_sess
 def search_recipes(db_sess: Session) -> SearchRecipesResponse:
+    """Search published recipes with advanced filtering, sorting, and pagination.
+
+    Supported query parameters:
+        q (str): Text search in recipe titles (case‑insensitive substring).
+        category_id (int): Filter by recipe category ID.
+        author_id (int): Filter by author ID.
+        difficulty (int): Filter by difficulty level (1‑5).
+        max_active_time (int): Filter by maximum active preparation time (minutes).
+        max_total_time (int): Filter by maximum total time (minutes).
+        min_rating (float): Filter by minimum average rating (1.0‑5.0).
+        ingredients_include (list[int]): Filter recipes that contain ALL of the given ingredient IDs.
+        ingredients_exclude (list[int]): Exclude recipes that contain ANY of the given ingredient IDs.
+        sort_by (str): Sort field: 'relevance', 'rating', 'date', 'active_time', 'total_time', 'difficulty'.
+        sort_order (str): Sort direction: 'asc' or 'desc'.
+        page (int): Page number (1‑based). Default 1.
+        per_page (int): Number of recipes per page. Default 20.
+
+    Args:
+        db_sess: Database session (injected by @use_db_sess).
+
+    Returns:
+        SearchRecipesResponse: Dictionary with total count, pagination metadata, and recipe results.
+
+    Note:
+        Only recipes with status 'published' are returned.
+        Relevance sorting currently defaults to recipe ID (placeholder).
+    """
     # Parse query parameters
     query = request.args.get("q", "").strip()
     category_id = request.args.get("category_id", type=int)
