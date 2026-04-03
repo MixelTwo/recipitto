@@ -16,6 +16,18 @@ export interface FavoriteDict
 	user_id: number;
 }
 
+export interface FavoriteWithRecipeDict
+{
+	added_at: string;
+	recipe: RecipeDict;
+}
+
+export interface ImageJson
+{
+	data: string;
+	name: string;
+}
+
 export interface IngredientCategoryDict
 {
 	id: number;
@@ -146,7 +158,7 @@ export interface RecipeRequest
 	category_id: number;
 	description: string;
 	difficulty: number;
-	main_image_id?: number;
+	main_image?: ImageJson | null;
 	status?: TRecipeStatus;
 	title: string;
 	total_time: number;
@@ -160,7 +172,7 @@ export interface RecipeUpdateRequest
 	category_id?: number;
 	description?: string;
 	difficulty?: number;
-	main_image_id?: number;
+	main_image?: ImageJson | null;
 	status?: TRecipeStatus;
 	title?: string;
 	total_time?: number;
@@ -168,7 +180,7 @@ export interface RecipeUpdateRequest
 
 export interface RecipeImageRequest
 {
-	image_id: number;
+	image: ImageJson;
 }
 
 export interface RecipeImageResponse extends RecipeImageDict { }
@@ -210,7 +222,7 @@ export interface RatingStatsResponse
 
 export interface StepRequest
 {
-	image_id?: number;
+	image?: ImageJson | null;
 	step_number: number;
 	text: string;
 }
@@ -219,7 +231,7 @@ export interface StepResponse extends RecipeStepDict { }
 
 export interface StepUpdateRequest
 {
-	image_id?: number;
+	image?: ImageJson | null;
 	step_number?: number;
 	text?: string;
 }

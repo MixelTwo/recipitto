@@ -12,7 +12,7 @@ import
 	mutate_add_recipe_ingredient,
 	mutate_delete_recipe_ingredient,
 } from "../api/client.js";
-import { RecipeIngredientDict } from "../api/types.js";
+import { RecipeIngredientDict, type ImageJson } from "../api/types.js";
 import Spinner from "../cmps/spinner.js";
 import IngredientPicker from "../cmps/ingredient-picker.js";
 
@@ -104,7 +104,7 @@ export default function render({ id }: { id?: string })
 			active_time: activeTime.v,
 			total_time: totalTime.v,
 			status: status.v,
-			main_image_id: undefined as number | undefined,
+			main_image: undefined as ImageJson | null | undefined,
 		};
 
 		try

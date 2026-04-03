@@ -51,10 +51,13 @@
     "response": [
       {
         "added_at": "string",
-        "recipe_id": "number",
-        "user_id": "number"
+        "recipe": "RecipeDict"
       }
     ]
+  },
+  "/api/img/<int:imgId> GET": {
+    "__desc__": "Get image as file",
+    "__jwt__": false
   },
   "/api/ingredient-categories GET": {
     "__desc__": "List all ingredient categories",
@@ -199,7 +202,7 @@
     }
   },
   "/api/recipes GET": {
-    "__desc__": "List of all recipes",
+    "__desc__": "List recipes with optional filtering",
     "__jwt__": false,
     "response": [
       {
@@ -220,6 +223,37 @@
         "vote_count": "number"
       }
     ]
+  },
+  "/api/recipes POST": {
+    "__desc__": "Create a new recipe",
+    "__permsions__": "recipe_create",
+    "request": {
+      "active_time": "number",
+      "category_id": "number",
+      "description": "string",
+      "difficulty": "number",
+      "main_image?": "ImageJson | null",
+      "status?": "TRecipeStatus",
+      "title": "string",
+      "total_time": "number"
+    },
+    "response": {
+      "active_time": "number",
+      "author": "string",
+      "category": "string",
+      "category_id": "number",
+      "created_at": "string",
+      "description": "string",
+      "difficulty": "number",
+      "id": "number",
+      "main_image": "string | null",
+      "published_at": "string | null",
+      "rating": "number",
+      "status": "TRecipeStatus",
+      "title": "string",
+      "total_time": "number",
+      "vote_count": "number"
+    }
   },
   "/api/recipes/<int:recipe_id> DELETE": {
     "__desc__": "Delete a recipe",
@@ -254,7 +288,7 @@
       "category_id?": "number",
       "description?": "string",
       "difficulty?": "number",
-      "main_image_id?": "number",
+      "main_image?": "ImageJson | null",
       "status?": "TRecipeStatus",
       "title?": "string",
       "total_time?": "number"
@@ -341,7 +375,7 @@
     "__desc__": "Add an image to a recipe",
     "__permsions__": "recipe_image_create",
     "request": {
-      "image_id": "number"
+      "image": "ImageJson"
     },
     "response": {
       "id": "number",
@@ -475,7 +509,7 @@
     "__desc__": "Add a step to a recipe",
     "__permsions__": "recipe_step_create",
     "request": {
-      "image_id?": "number",
+      "image?": "ImageJson | null",
       "step_number": "number",
       "text": "string"
     },
@@ -506,7 +540,7 @@
     "__desc__": "Update a recipe step",
     "__permsions__": "recipe_step_update",
     "request": {
-      "image_id?": "number",
+      "image?": "ImageJson | null",
       "step_number?": "number",
       "text?": "string"
     },
@@ -566,6 +600,14 @@
     "added_at": "string",
     "recipe_id": "number",
     "user_id": "number"
+  },
+  "FavoriteWithRecipeDict": {
+    "added_at": "string",
+    "recipe": "RecipeDict"
+  },
+  "ImageJson": {
+    "data": "string",
+    "name": "string"
   },
   "IngredientCategoryDict": {
     "id": "number",

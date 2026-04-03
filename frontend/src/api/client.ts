@@ -12,6 +12,7 @@ import
     CommentDict,
     CommentRequest,
     FavoriteDict,
+    FavoriteWithRecipeDict,
     IngredientCategoryDict,
     IngredientCategoryRequest,
     IngredientDict,
@@ -256,6 +257,16 @@ export const mutate_remove_favorite = (recipe_id: number) => query<boolean, []>(
         await fetchJsonDelete(`/api/recipes/${recipe_id}/favorite`);
         return true;
     }
+);
+
+export const query_favorites = () => query<FavoriteWithRecipeDict[], []>(
+    "favorites",
+    async () =>
+    {
+        const favorites = await fetchJsonGet<FavoriteWithRecipeDict[]>("/api/favorites");
+        return favorites;
+    },
+    []
 );
 
 // Categories
