@@ -1,0 +1,90 @@
+site_name: Bafser Recipe Backend
+site_description: Documentation for the recipe management backend API
+site_author: Backend Team
+repo_url: https://github.com/MixelTwo/recipitto
+repo_name: recipe-backend
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+  - autorefs:
+      link_titles: false
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+          options:
+            show_source: true
+            show_root_heading: true
+            show_category_heading: true
+            heading_level: 3
+            filters: ["!^_"]
+            members_order: alphabetical
+
+nav:
+  - Home: index.md
+  - API Reference:
+      - Blueprints:
+          - Authentication: api/blueprints/auth.md
+          - Recipes: api/blueprints/recipe.md
+          - Users: api/blueprints/user.md
+          - Comments: api/blueprints/comment.md
+          - Ratings: api/blueprints/rating.md
+          - Favorites: api/blueprints/favorite.md
+          - Search: api/blueprints/search.md
+      - Data Models:
+          - Recipe: api/data/recipe.md
+          - User: api/data/user.md
+          - Comment: api/data/comment.md
+          - Rating: api/data/rating.md
+          - Ingredient: api/data/ingredient.md
+          - RecipeCategory: api/data/recipe_category.md
+          - IngredientCategory: api/data/ingredient_category.md
+  - Development:
+      - Setup: development/setup.md
+      - Testing: development/testing.md
+      - Database: development/database.md
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.details
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/your-org/recipe-backend
+    - icon: fontawesome/solid/globe
+      link: https://example.com
+
+copyright: Copyright &copy; 2026 Backend Team

@@ -9,6 +9,13 @@ bp = Blueprint("auth", __name__)
 
 
 class LoginJson(JsonObj):
+    """JSON schema for user login.
+
+    Attributes:
+        login: Username or email.
+        password: User password.
+    """
+
     login: str
     password: str
 
@@ -17,6 +24,17 @@ class LoginJson(JsonObj):
 @doc_api(req=LoginJson, res=UserDict, desc="Get auth cookie")
 @use_db_sess
 def login(db_sess: Session):
+    """Authenticate user and set JWT cookie.
+
+    Args:
+        db_sess: Database session (injected by @use_db_sess).
+
+    Returns:
+        User object and sets an HTTP‑only JWT cookie.
+
+    Raises:
+        400 if login or password is incorrect.
+    """
     data = LoginJson.get_from_req()
     user = User.get_by_login(db_sess, data.login)
 
@@ -32,6 +50,11 @@ def login(db_sess: Session):
 @bp.post("/api/logout")
 @doc_api(desc="Remove auth cookie")
 def logout():
+    """Clear authentication cookies.
+
+    Returns:
+        Success message and removes JWT cookies.
+    """
     response = response_msg("logout successful")
     unset_jwt_cookies(response)
     return response

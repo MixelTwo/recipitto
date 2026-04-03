@@ -9,6 +9,19 @@ bp = Blueprint("recipe", __name__)
 
 
 class CreateRecipeJson(JsonObj):
+    """JSON schema for creating a new recipe.
+
+    Attributes:
+        title: Recipe title (max 128 characters).
+        description: Recipe description.
+        active_time: Active preparation time in minutes.
+        total_time: Total time including waiting/cooking in minutes.
+        difficulty: Difficulty level from 1 (easiest) to 5 (hardest).
+        category_id: ID of the recipe category.
+        main_image: Optional image data for the main recipe image.
+        status: Optional recipe status (draft, published, deleted). Defaults to draft.
+    """
+
     title: str
     description: str
     active_time: int
@@ -20,6 +33,21 @@ class CreateRecipeJson(JsonObj):
 
 
 class UpdateRecipeJson(JsonObj):
+    """JSON schema for updating an existing recipe.
+
+    All fields are optional. Only provided fields will be updated.
+
+    Attributes:
+        title: New recipe title (max 128 characters).
+        description: New recipe description.
+        active_time: New active preparation time in minutes.
+        total_time: New total time in minutes.
+        difficulty: New difficulty level (1-5).
+        category_id: New category ID.
+        main_image: New image data for the main recipe image (or null to remove).
+        status: New recipe status (draft, published, deleted).
+    """
+
     title: JsonOpt[str] = Undefined
     description: JsonOpt[str] = Undefined
     active_time: JsonOpt[int] = Undefined
@@ -33,6 +61,14 @@ class UpdateRecipeJson(JsonObj):
 @bp.get("/api/recipes")
 @doc_api(res=list[RecipeDict], desc="List recipes with optional filtering")
 def list_recipes():
+    """Retrieve a list of recipes.
+
+    Returns:
+        JSON array of recipe objects.
+
+    Note:
+        Filtering, sorting, and pagination are not yet implemented.
+    """
     # TODO: implement filtering, sorting, pagination
     recipes = Recipe.all2()
     return jsonify_list(recipes)
@@ -41,6 +77,17 @@ def list_recipes():
 @bp.get("/api/recipes/<int:recipe_id>")
 @doc_api(res=RecipeDict, desc="Get a recipe by ID")
 def get_recipe(recipe_id: int):
+    """Retrieve a single recipe by its ID.
+
+    Args:
+        recipe_id: The ID of the recipe to retrieve.
+
+    Returns:
+        The recipe object as JSON.
+
+    Raises:
+        404 error if recipe not found.
+    """
     recipe = abort_if_none(Recipe.get2(recipe_id), "recipe")
     return recipe.get_dict()
 
@@ -49,6 +96,19 @@ def get_recipe(recipe_id: int):
 @doc_api(req=CreateRecipeJson, res=RecipeDict, desc="Create a new recipe")
 @protected_route(perms=Operations.recipe_create)
 def create_recipe():
+    """Create a new recipe.
+
+    Requires authentication and the `recipe_create` permission.
+
+    Request body must conform to CreateRecipeJson schema.
+
+    Returns:
+        The newly created recipe object.
+
+    Raises:
+        400 if validation fails (invalid status, image upload error).
+        403 if user lacks permission.
+    """
     req = CreateRecipeJson.get_from_req()
     # Validate status
     status = None
@@ -84,6 +144,22 @@ def create_recipe():
 @doc_api(req=UpdateRecipeJson, res=RecipeDict, desc="Update a recipe")
 @protected_route(perms=Operations.recipe_update)
 def update_recipe(recipe_id: int):
+    """Update an existing recipe.
+
+    Requires authentication and the `recipe_update` permission.
+    Users can only update their own recipes unless they have admin moderation rights.
+
+    Args:
+        recipe_id: The ID of the recipe to update.
+
+    Returns:
+        The updated recipe object.
+
+    Raises:
+        400 if validation fails (invalid status, image upload error).
+        403 if user lacks permission or is not the author/admin.
+        404 if recipe not found.
+    """
     req = UpdateRecipeJson.get_from_req()
     recipe = abort_if_none(Recipe.get2(recipe_id), "recipe")
     # Check ownership: if user is not admin and not author, deny
@@ -122,6 +198,21 @@ def update_recipe(recipe_id: int):
 @doc_api(res=None, desc="Delete a recipe")
 @protected_route(perms=Operations.recipe_delete)
 def delete_recipe(recipe_id: int):
+    """Delete a recipe.
+
+    Requires authentication and the `recipe_delete` permission.
+    Users can only delete their own recipes unless they have admin moderation rights.
+
+    Args:
+        recipe_id: The ID of the recipe to delete.
+
+    Returns:
+        Empty response with status 204 on success.
+
+    Raises:
+        403 if user lacks permission or is not the author/admin.
+        404 if recipe not found.
+    """
     recipe = abort_if_none(Recipe.get2(recipe_id), "recipe")
     # Check ownership: if user is not admin and not author, deny
     if not User.current.has_operation(Operations.admin_moderate_recipes) and recipe.author_id != User.current.id:

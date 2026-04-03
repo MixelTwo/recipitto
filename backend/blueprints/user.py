@@ -10,4 +10,11 @@ bp = Blueprint("user", __name__)
 @doc_api(res=UserDict, desc="Get current user")
 @protected_route()
 def user():
+    """Retrieve the currently authenticated user's profile.
+
+    Requires authentication.
+
+    Returns:
+        The user object of the authenticated user.
+    """
     return User.current.get_dict()
