@@ -253,7 +253,7 @@ export function initEl<K extends keyof HTMLElementTagNameMap>(tagName: K, classe
 		function addClass(c: ElClass)
 		{
 			if (!c) return;
-			if (typeof c == "string") el.classList.add(c);
+			if (typeof c == "string") c.split(" ").forEach(cls => el.classList.add(cls));
 			else if (c instanceof State)
 			{
 				function update(v: ElClassSimple, pv: ElClassSimple)
@@ -287,7 +287,7 @@ export function initEl<K extends keyof HTMLElementTagNameMap>(tagName: K, classe
 				}
 			})
 		}
-		if (typeof classes == "string") el.classList.add(classes);
+		if (typeof classes == "string") classes.split(" ").forEach(cls => el.classList.add(cls));
 		if (classes instanceof Array) classes.forEach(addClass);
 		else addClass(classes);
 	}
@@ -330,7 +330,7 @@ function styleValuetoString(key: string, val: string | number)
 
 }
 
-export function injectStyles<T extends Record<string, CSSStyles>>(styles: T): Record<keyof T, string>
+export function injectStyles<T extends Record<string, CSSStyles | Record<string, CSSStyles>>>(styles: T): Record<keyof T, string>
 {
 	const styleElement = document.createElement("style");
 	const classMap = {} as Record<keyof T, string>;
@@ -339,25 +339,41 @@ export function injectStyles<T extends Record<string, CSSStyles>>(styles: T): Re
 	const toKebab = (str: string) => str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 	const generateHash = () => Math.random().toString(36).slice(2, 9);
 
-	for (const key in styles)
+	function buildCSS(className: string, values: CSSStyles | Record<string, CSSStyles>)
+	{
+		const rules = [] as string[];
+		for (const prop in values)
+		{
+			if (!Object.prototype.hasOwnProperty.call(values, prop)) continue;
+			const value = values[prop as keyof typeof values];
+			if (typeof value == "object")
+			{
+				buildCSS(
+					prop.includes("&") ? prop.replaceAll("&", className) : className + " " + prop
+					, value
+				);
+			}
+			else if (value != undefined)
+			{
+				rules.push(`  ${toKebab(prop)}: ${styleValuetoString(prop, value)};`);
+			}
+		}
+		cssString += `${className} {\n${rules.join("\n")}\n}\n`;
+	}
+
+	const styleItems = Object.entries(styles)
+	for (const [key, values] of styleItems)
 	{
 		if (!Object.prototype.hasOwnProperty.call(styles, key)) continue;
+		const match = key.match(/^([^:\s]+)(.*)$/);
+		const base = match?.[1] ?? key;
+		const suffix = match?.[2] ?? "";
 
-		const splitI = key.includes(":") ? key.indexOf(":") : key.indexOf(" ");
-		if (splitI > 0)
-			classMap[key] = (classMap[key.slice(0, splitI)] || `${key.slice(0, splitI)}_${generateHash()}`) + key.slice(splitI);
-		else
-			classMap[key] = `${key}_${generateHash()}`;
+		const baseClass = classMap[base] ?? `${base}_${generateHash()}`;
+		const className = baseClass + suffix
+		classMap[key as keyof T] = className;
 
-		const styleRules = styles[key]!;
-		const rules = Object.entries(styleRules)
-			.map(([prop, value]) =>
-			{
-				return `  ${toKebab(prop)}: ${styleValuetoString(prop, value!)};`;
-			})
-			.join('\n');
-
-		cssString += `.${classMap[key]} {\n${rules}\n}\n`;
+		buildCSS("." + className, values);
 	}
 
 	styleElement.textContent = cssString;
@@ -367,10 +383,15 @@ export function injectStyles<T extends Record<string, CSSStyles>>(styles: T): Re
 }
 
 type StateListener<T> = (v: T, pv: T) => void;
-export let _onPageCleanup: (() => void)[] = [];
+let _onPageCleanup: (() => void)[] = [];
 export function onPageCleanup(fn: () => void)
 {
 	_onPageCleanup.push(fn);
+}
+export function runPageCleanup()
+{
+	_onPageCleanup.forEach(fn => fn());
+	_onPageCleanup = [];
 }
 export class State<T>
 {

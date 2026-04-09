@@ -1,10 +1,11 @@
-import Layout, { LayoutWithUser } from "../layout.js";
+import { LayoutWithUser } from "../layout.js";
 import { $, A, Button, Div, H1, Span, initEl, If, type ElChildren, State } from "../littleLib.js";
 import { toPage } from "../main.js";
 import { setPageTitle } from "../utils.js";
-import { query_recipes, query_user } from "../api/client.js";
+import { query_recipes, query_user, query_favorites } from "../api/client.js";
 import Spinner from "../cmps/spinner.js";
 import RatingStars from "../cmps/rating-stars.js";
+import FavoriteRecipeCard from "../cmps/favorite-recipe-card.js";
 
 export default function render()
 {
@@ -13,6 +14,7 @@ export default function render()
 	LayoutWithUser(null, user =>
 	{
 		const recipes = query_recipes({ author_id: user.id }); // mock filtering
+		const favorites = query_favorites();
 		const activeTab = $<"recipes" | "favorites" | "settings">("recipes");
 
 		return Div("profile-page", [
@@ -83,7 +85,18 @@ export default function render()
 					])),
 				$(activeTab, tab => tab === "favorites" && Div("profile-page__favorites", [
 					initEl("h2", "profile-page__subtitle", "Избранное"),
-					Div([], "Здесь будут отображены ваши избранные рецепты."),
+					$(favorites, f => f.isLoading && Spinner()),
+					$(favorites, f => f.error && Div("profile-page__error", "Ошибка загрузки избранного")),
+					$(favorites, f => f.data && (
+						f.data.length === 0
+							? Div("profile-page__empty", "У вас пока нет избранных рецептов.")
+							: Div("profile-page__grid", f.data.map(fav =>
+								FavoriteRecipeCard({
+									favorite: fav,
+									onRemove: () => favorites.v.refetch()
+								})
+							))
+					)),
 				])),
 				$(activeTab, tab => tab === "settings" && Div("profile-page__settings", [
 					initEl("h2", "profile-page__subtitle", "Настройки аккаунта"),
