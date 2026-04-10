@@ -6,6 +6,7 @@ import { query_recipes, query_user, query_favorites } from "../api/client.js";
 import Spinner from "../cmps/spinner.js";
 import RatingStars from "../cmps/rating-stars.js";
 import FavoriteRecipeCard from "../cmps/favorite-recipe-card.js";
+import ProfileEditModal from "../cmps/profile-edit-modal.js";
 
 export default function render()
 {
@@ -16,8 +17,17 @@ export default function render()
 		const recipes = query_recipes({ author_id: user.id }); // mock filtering
 		const favorites = query_favorites();
 		const activeTab = $<"recipes" | "favorites" | "settings">("recipes");
+		const showEditModal = $(false);
 
 		return Div("profile-page", [
+			If(showEditModal, () => ProfileEditModal({
+				user,
+				onSuccess: (updatedUser) =>
+				{
+					showEditModal.v = false;
+				},
+				onCancel: () => showEditModal.v = false,
+			})),
 			Div("profile-page__header", [
 				Div("profile-page__avatar", user.avatar
 					? initEl("img", "profile-page__avatar-img", undefined, (el: HTMLImageElement) =>
@@ -37,8 +47,7 @@ export default function render()
 				]),
 				Button([], "Редактировать профиль", () =>
 				{
-					// TODO: implement profile edit
-					alert("Редактирование профиля пока недоступно");
+					showEditModal.v = true;
 				}),
 			]),
 			Div("profile-page__tabs", [

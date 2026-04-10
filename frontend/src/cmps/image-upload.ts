@@ -186,9 +186,8 @@ export default function ImageUpload(props: ImageUploadProps): HTMLDivElement
 		$(error, err => err ? Div(styles.error, err) : null),
 		// Preview of newly added files
 		Div(styles.previewsContainer,
-			...previews.v.map((preview, index) =>
+			$(previews, v => v.map((preview, index) =>
 				Div(styles.previewItem, [
-					// Create img element manually
 					(() =>
 					{
 						const img = document.createElement('img');
@@ -199,7 +198,7 @@ export default function ImageUpload(props: ImageUploadProps): HTMLDivElement
 					})(),
 					Button(styles.removeButton, "×", () => removeFile(index)),
 				])
-			)
+			))
 		),
 		// Existing images (for gallery)
 		props.existingImages && props.existingImages.length > 0 ? Div(styles.existingContainer, [

@@ -4,6 +4,7 @@ import
 {
     AuthRequest,
     User,
+    UserUpdateRequest,
     RecipeDict,
     RecipeListResponse,
     RecipeRequest,
@@ -67,6 +68,16 @@ export const query_user = () => query<User, []>(
         return user;
     },
     []
+);
+
+export const mutate_update_user = () => query<User, [UserUpdateRequest]>(
+    null,
+    async (data: UserUpdateRequest) =>
+    {
+        const updatedUser = await fetchJsonPatch<User>("/api/user", data);
+        QueryCache.set("user", updatedUser);
+        return updatedUser;
+    }
 );
 
 // Recipes

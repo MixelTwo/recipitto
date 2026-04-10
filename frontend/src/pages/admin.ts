@@ -26,14 +26,19 @@ export default function render()
 	const ingredientCategories = query_ingredient_categories();
 	const ingredients = query_ingredients();
 
-	const handleDeleteRecipe = (id: number) =>
+	const handleDeleteRecipe = async (id: number) =>
 	{
-		if (confirm("Удалить рецепт?"))
+		if (!confirm("Удалить рецепт?")) return;
+
+		try
 		{
-			mutate_delete_recipe(id).v.fetch();
-			// TODO: add error handling
-			// In a real app we would invalidate cache
+			await (mutate_delete_recipe(id).v.fetch() as any);
 			recipes.v.refetch();
+		}
+		catch (err: any)
+		{
+			console.error("Failed to delete recipe:", err);
+			alert("Ошибка при удалении рецепта: " + (err.message || "неизвестная ошибка"));
 		}
 	};
 

@@ -236,6 +236,12 @@ export interface StepUpdateRequest
 	text?: string;
 }
 
+export interface UserUpdateRequest
+{
+	name?: string;
+	avatar?: ImageJson | null;
+}
+
 export interface SearchQuery
 {
 	q?: string;
