@@ -292,6 +292,61 @@ export const query_ingredient_categories = () => query<IngredientCategoryDict[],
     []
 );
 
+// Category mutations
+export const mutate_create_recipe_category = () => query<RecipeCategoryDict, [RecipeCategoryRequest]>(
+    null,
+    async (data: RecipeCategoryRequest) =>
+    {
+        const category = await fetchJsonPost<RecipeCategoryDict>("/api/recipe-categories", data);
+        return category;
+    }
+);
+
+export const mutate_update_recipe_category = (id: number) => query<RecipeCategoryDict, [RecipeCategoryRequest]>(
+    null,
+    async (data: RecipeCategoryRequest) =>
+    {
+        const category = await fetchJsonPatch<RecipeCategoryDict>(`/api/recipe-categories/${id}`, data);
+        return category;
+    }
+);
+
+export const mutate_delete_recipe_category = (id: number) => query<boolean, []>(
+    null,
+    async () =>
+    {
+        await fetchJsonDelete(`/api/recipe-categories/${id}`);
+        return true;
+    }
+);
+
+export const mutate_create_ingredient_category = () => query<IngredientCategoryDict, [IngredientCategoryRequest]>(
+    null,
+    async (data: IngredientCategoryRequest) =>
+    {
+        const category = await fetchJsonPost<IngredientCategoryDict>("/api/ingredient-categories", data);
+        return category;
+    }
+);
+
+export const mutate_update_ingredient_category = (id: number) => query<IngredientCategoryDict, [IngredientCategoryRequest]>(
+    null,
+    async (data: IngredientCategoryRequest) =>
+    {
+        const category = await fetchJsonPatch<IngredientCategoryDict>(`/api/ingredient-categories/${id}`, data);
+        return category;
+    }
+);
+
+export const mutate_delete_ingredient_category = (id: number) => query<boolean, []>(
+    null,
+    async () =>
+    {
+        await fetchJsonDelete(`/api/ingredient-categories/${id}`);
+        return true;
+    }
+);
+
 // Ingredients
 export const query_ingredients = () => query<IngredientDict[], []>(
     "ingredients",

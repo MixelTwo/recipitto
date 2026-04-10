@@ -1,19 +1,29 @@
 import Layout from "../layout.js";
-import { $, Button, Div, H1, Input, Table, TR, TD, initEl, If } from "../littleLib.js";
+import { $, Button, Div, H1, Input, Table, TR, TD, initEl, If, Span } from "../littleLib.js";
 import { setPageTitle } from "../utils.js";
-import { query_recipes, query_recipe_categories, query_ingredients, mutate_delete_recipe } from "../api/client.js";
+import
+{
+	query_recipes,
+	query_recipe_categories,
+	query_ingredient_categories,
+	query_ingredients,
+	mutate_delete_recipe
+} from "../api/client.js";
 import Spinner from "../cmps/spinner.js";
 import IngredientManager from "../cmps/ingredient-manager.js";
+import RecipeCategoryManager from "../cmps/recipe-category-manager.js";
+import IngredientCategoryManager from "../cmps/ingredient-category-manager.js";
 
 export default function render()
 {
 	setPageTitle("Админ-панель");
 
-	const activeTab = $<"recipes" | "categories" | "ingredients" | "users">("recipes");
+	const activeTab = $<"recipes" | "recipe_categories" | "ingredient_categories" | "ingredients" | "users">("recipes");
 	const searchQuery = $("");
 
 	const recipes = query_recipes();
-	const categories = query_recipe_categories();
+	const recipeCategories = query_recipe_categories();
+	const ingredientCategories = query_ingredient_categories();
 	const ingredients = query_ingredients();
 
 	const handleDeleteRecipe = (id: number) =>
@@ -32,7 +42,8 @@ export default function render()
 			H1([], "Админ-панель"),
 			Div("admin-page__tabs", [
 				Button([], "Рецепты", () => activeTab.v = "recipes"),
-				Button([], "Категории", () => activeTab.v = "categories"),
+				Button([], "Категории рецептов", () => activeTab.v = "recipe_categories"),
+				Button([], "Категории ингредиентов", () => activeTab.v = "ingredient_categories"),
 				Button([], "Ингредиенты", () => activeTab.v = "ingredients"),
 				Button([], "Пользователи", () => activeTab.v = "users"),
 			]),
@@ -78,36 +89,15 @@ export default function render()
 							])
 						)),
 					])),
-				If($(activeTab, tab => tab === "categories"),
+				If($(activeTab, tab => tab === "recipe_categories"),
 					Div("admin-page__section", [
 						initEl("h2", "admin-page__subtitle", "Управление категориями рецептов"),
-						$(categories, c => c.isLoading && Spinner()),
-						$(categories, c => c.error && Div("admin-page__error", "Ошибка загрузки категорий")),
-						$(categories, c => c.data && (
-							Table("admin-page__table", [
-								initEl("thead", undefined, [
-									TR(undefined, [
-										initEl("th", [], "ID"),
-										initEl("th", [], "Название"),
-										initEl("th", [], "Действия"),
-									]),
-								]),
-								initEl("tbody", undefined,
-									c.data.map(cat => TR(undefined, [
-										TD([], String(cat.id)),
-										TD([], cat.name),
-										TD([], [
-											Button([], "Редактировать", () => { }),
-											Button([], "Удалить", () => { }),
-										]),
-									]))
-								),
-							])
-						)),
-						Div("admin-page__form", [
-							Input([], "text", "Новая категория..."),
-							Button([], "Добавить", () => { }),
-						]),
+						RecipeCategoryManager(),
+					])),
+				If($(activeTab, tab => tab === "ingredient_categories"),
+					Div("admin-page__section", [
+						initEl("h2", "admin-page__subtitle", "Управление категориями ингредиентов"),
+						IngredientCategoryManager(),
 					])),
 				If($(activeTab, tab => tab === "ingredients"),
 					Div("admin-page__section", [
