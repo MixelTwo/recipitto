@@ -9,6 +9,7 @@ import
 	query_recipe_favorite,
 	query_recipe_ingredients,
 	query_recipe_steps,
+	query_recipe_images,
 	mutate_add_favorite,
 	mutate_remove_favorite,
 	mutate_create_comment,
@@ -35,6 +36,7 @@ export default function render({ id }: { id: string })
 	const comments = query_recipe_comments(recipeId);
 	const ingredients = query_recipe_ingredients(recipeId);
 	const steps = query_recipe_steps(recipeId);
+	const galleryImages = query_recipe_images(recipeId);
 	const favorite = query_recipe_favorite(recipeId);
 
 	const activeTab = $<"details" | "ingredients" | "steps" | "comments">("details");
@@ -101,6 +103,21 @@ export default function render({ id }: { id: string })
 						el.src = data.main_image!;
 						el.alt = data.title;
 					}),
+					// Gallery images
+					$(galleryImages, g => g.isLoading ? Spinner() : null),
+					$(galleryImages, g => g.error ? Div("recipe-page__error", `Ошибка загрузки изображений: ${g.error.msg || "Неизвестная ошибка"}`) : null),
+					$(galleryImages, g => g.data && g.data.length > 0 ? Div("recipe-page__gallery", [
+						initEl("h3", "recipe-page__subtitle", "Галерея изображений"),
+						Div("recipe-page__gallery-grid",
+							g.data.map(img =>
+								initEl("img", "recipe-page__gallery-image", [], (el: HTMLImageElement) =>
+								{
+									el.src = `/api/img/${img.image_id}`;
+									el.alt = `Изображение ${img.id}`;
+								})
+							)
+						),
+					]) : null),
 					Div("recipe-page__description", data.description),
 					Div("recipe-page__tabs", [
 						Button([], "Основное", () => activeTab.v = "details"),

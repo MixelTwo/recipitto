@@ -241,10 +241,10 @@ export function A(classes?: ElClasses, children?: ElChildren, href?: string, cli
 export type CSSStyles = Partial<Record<keyof CSSStyleDeclaration, string | number>>;
 export type CSSStylesState = Partial<Record<keyof CSSStyleDeclaration, string | number | State<string | number>>>;
 type ElClassSimple = string | undefined | null | false | CSSStyles;
-type ElClass = ElClassSimple | CSSStylesState | State<ElClassSimple>;
+type ElClass = ElClassSimple | CSSStylesState | State<ElClass>;
 export type ElClasses = ElClass[] | ElClass;
 type ElChild = Node | string | undefined | null | false | ElChild[];
-export type ElChildren = ElChild | State<ElChild> | (ElChild | State<ElChild>)[];
+export type ElChildren = ElChild | State<ElChildren> | (ElChild | State<ElChildren>)[];
 export function initEl<K extends keyof HTMLElementTagNameMap>(tagName: K, classes?: ElClasses, children?: ElChildren, onCreate?: (el: HTMLElementTagNameMap[K]) => void)
 {
 	const el = document.createElement(tagName);
@@ -256,7 +256,7 @@ export function initEl<K extends keyof HTMLElementTagNameMap>(tagName: K, classe
 			if (typeof c == "string") c.split(" ").forEach(cls => el.classList.add(cls));
 			else if (c instanceof State)
 			{
-				function update(v: ElClassSimple, pv: ElClassSimple)
+				function update(v: ElClass, pv: ElClass)
 				{
 					if (pv)
 					{

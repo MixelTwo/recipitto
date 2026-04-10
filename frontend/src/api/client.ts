@@ -13,6 +13,7 @@ import
     CommentRequest,
     FavoriteDict,
     FavoriteWithRecipeDict,
+    ImageJson,
     IngredientCategoryDict,
     IngredientCategoryRequest,
     IngredientDict,
@@ -389,6 +390,35 @@ export const mutate_delete_rating = (recipe_id: number) => query<boolean, []>(
     async () =>
     {
         await fetchJsonDelete(`/api/recipes/${recipe_id}/ratings`);
+        return true;
+    }
+);
+
+// Recipe images
+export const query_recipe_images = (recipe_id: number) => query<RecipeImageDict[], []>(
+    `recipe_${recipe_id}_images`,
+    async () =>
+    {
+        const images = await fetchJsonGet<RecipeImageDict[]>(`/api/recipes/${recipe_id}/images`);
+        return images;
+    },
+    []
+);
+
+export const mutate_add_recipe_image = (recipe_id: number) => query<RecipeImageDict, [ImageJson]>(
+    null,
+    async (image: ImageJson) =>
+    {
+        const result = await fetchJsonPost<RecipeImageDict>(`/api/recipes/${recipe_id}/images`, { image });
+        return result;
+    }
+);
+
+export const mutate_delete_recipe_image = (recipe_id: number, image_id: number) => query<boolean, []>(
+    null,
+    async () =>
+    {
+        await fetchJsonDelete(`/api/recipes/${recipe_id}/images/${image_id}`);
         return true;
     }
 );

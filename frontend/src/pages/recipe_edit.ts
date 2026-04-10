@@ -7,14 +7,18 @@ import
 	query_recipe_by_id,
 	query_recipe_categories,
 	query_recipe_ingredients,
+	query_recipe_images,
 	mutate_create_recipe,
 	mutate_update_recipe,
 	mutate_add_recipe_ingredient,
 	mutate_delete_recipe_ingredient,
+	mutate_add_recipe_image,
+	mutate_delete_recipe_image,
 } from "../api/client.js";
-import { RecipeIngredientDict, type ImageJson } from "../api/types.js";
+import { RecipeIngredientDict, type ImageJson, type RecipeImageDict } from "../api/types.js";
 import Spinner from "../cmps/spinner.js";
 import IngredientPicker from "../cmps/ingredient-picker.js";
+import ImageUpload from "../cmps/image-upload.js";
 
 export default function render({ id }: { id?: string })
 {
@@ -44,6 +48,10 @@ export default function render({ id }: { id?: string })
 	const errors = $<Record<string, string>>({});
 	const isSubmitting = $(false);
 	const ingredients = $<RecipeIngredientDict[]>([]);
+	const mainImage = $<ImageJson | null>(null);
+	const galleryImages = $<RecipeImageDict[]>([]);
+	const newGalleryImages = $<ImageJson[]>([]);
+	const imagesToDelete = $<number[]>([]);
 
 	// Load existing recipe if editing
 	if (recipe)
@@ -72,6 +80,16 @@ export default function render({ id }: { id?: string })
 			if (q.data)
 			{
 				ingredients.v = q.data;
+			}
+		});
+
+		// Load existing images if editing
+		const existingImagesQuery = query_recipe_images(recipeId);
+		$(existingImagesQuery, q =>
+		{
+			if (q.data)
+			{
+				galleryImages.v = q.data;
 			}
 		});
 	}
@@ -104,7 +122,7 @@ export default function render({ id }: { id?: string })
 			active_time: activeTime.v,
 			total_time: totalTime.v,
 			status: status.v,
-			main_image: undefined as ImageJson | null | undefined,
+			main_image: mainImage.v,
 		};
 
 		try
@@ -145,6 +163,33 @@ export default function render({ id }: { id?: string })
 					{
 						console.error("Failed to save ingredient", ing, err);
 						// Continue with other ingredients
+					}
+				}
+			}
+
+			// Save gallery images if we have a recipe ID
+			if (savedRecipeId !== null)
+			{
+				// Delete images marked for removal
+				for (const imageId of imagesToDelete.v)
+				{
+					try
+					{
+						await mutate_delete_recipe_image(savedRecipeId, imageId).v.fetch();
+					} catch (err)
+					{
+						console.error("Failed to delete image", imageId, err);
+					}
+				}
+				// Add new gallery images
+				for (const image of newGalleryImages.v)
+				{
+					try
+					{
+						await mutate_add_recipe_image(savedRecipeId).v.fetch(image);
+					} catch (err)
+					{
+						console.error("Failed to add image", image, err);
 					}
 				}
 			}
@@ -283,6 +328,37 @@ export default function render({ id }: { id?: string })
 						{
 							status.v = el.value as any;
 						});
+					}),
+				]),
+				Div("recipe-edit__field", [
+					initEl("label", "recipe-edit__label", "Главное изображение"),
+					ImageUpload({
+						multiple: false,
+						label: "Загрузите главное изображение рецепта",
+						onImagesChange: (images) =>
+						{
+							mainImage.v = images.length > 0 ? images[0]! : null;
+						},
+						showDropzone: true,
+					}),
+				]),
+				Div("recipe-edit__field", [
+					initEl("label", "recipe-edit__label", "Галерея изображений"),
+					ImageUpload({
+						multiple: true,
+						label: "Загрузите дополнительные изображения для галереи",
+						existingImages: galleryImages.v,
+						onRemoveExisting: (id) =>
+						{
+							imagesToDelete.v = [...imagesToDelete.v, id];
+							galleryImages.v = galleryImages.v.filter(img => img.id !== id);
+						},
+						onImagesChange: (images) =>
+						{
+							newGalleryImages.v = images;
+						},
+						showDropzone: true,
+						maxFiles: 10,
 					}),
 				]),
 				Div("recipe-edit__field", [
