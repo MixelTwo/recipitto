@@ -386,9 +386,9 @@ export const mutate_delete_ingredient = (id: number) => query<boolean, []>(
 );
 
 // Search
-export const query_search_recipes = (params: SearchQuery) => query<SearchResponse, []>(
+export const query_search_recipes = () => query(
     "search_recipes",
-    async () =>
+    async (params: SearchQuery) =>
     {
         const url = new URL("/api/search/recipes", window.location.origin);
         const search = new URLSearchParams();
@@ -414,8 +414,7 @@ export const query_search_recipes = (params: SearchQuery) => query<SearchRespons
         url.search = search.toString();
         const response = await fetchJsonGet<SearchResponse>(url.toString());
         return response;
-    },
-    []
+    }
 );
 
 // Recipe steps

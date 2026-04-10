@@ -6,6 +6,7 @@ import { query_search_recipes, query_recipe_categories } from "../api/client.js"
 import Spinner from "../cmps/spinner.js";
 import RatingStars from "../cmps/rating-stars.js";
 import IngredientFilter, { type IngredientFilterMode } from "../cmps/ingredient-filter.js";
+import Pagination from "../cmps/pagination.js";
 
 export default function render()
 {
@@ -25,6 +26,10 @@ export default function render()
 	const ingredientsExclude = $<number[]>([]);
 	const ingredientFilterMode = $<IngredientFilterMode>("contains_any");
 
+	// Pagination state
+	const currentPage = $(1);
+	const pageSize = $(20);
+
 	// Ingredient filter component instance
 	const ingredientFilter = IngredientFilter({
 		initialSelected: [],
@@ -38,7 +43,7 @@ export default function render()
 
 	// Function to build search query
 	const buildSearchQuery = () => ({
-		text: searchText.v || undefined,
+		q: searchText.v || undefined,
 		category_id: selectedCategory.v || undefined,
 		max_active_time: maxActiveTime.v || undefined,
 		difficulty: difficulty.v || undefined,
@@ -46,18 +51,18 @@ export default function render()
 		ingredients_exclude: ingredientsExclude.v.length > 0 ? ingredientsExclude.v : undefined,
 		sort_by: sortBy.v,
 		sort_order: sortOrder.v,
-		page: 1,
-		per_page: 20,
+		page: currentPage.v,
+		per_page: pageSize.v,
 	});
 
 	// Perform search
-	const searchQuery = $(buildSearchQuery());
-	const searchResults = query_search_recipes(searchQuery.v);
+	const searchResults = query_search_recipes();
 
 	const performSearch = () =>
 	{
-		searchQuery.v = buildSearchQuery();
+		searchResults.v.refetch(buildSearchQuery())
 	};
+	performSearch();
 
 	Layout([
 		Div("search-page", [
@@ -203,33 +208,54 @@ export default function render()
 				$(searchResults, r => r.data && (
 					r.data.results.length === 0
 						? Div("search-page__empty", "По вашему запросу ничего не найдено.")
-						: Div("search-page__grid", r.data.results.map(recipe => (
-							Div("recipe-card", [
-								recipe.main_image
-									? initEl("img", "recipe-card__image", undefined, (el: HTMLImageElement) =>
-									{
-										el.src = recipe.main_image!;
-										el.alt = recipe.title;
-									})
-									: Div("recipe-card__image-placeholder", ""),
-								Div("recipe-card__content", [
-									initEl("h3", "recipe-card__title", recipe.title),
-									initEl("p", "recipe-card__description", recipe.description),
-									Div("recipe-card__meta", [
-										Span([], `${recipe.active_time} мин активного времени`),
-										Span([], `${recipe.difficulty}/5 сложность`),
-										RatingStars({
-											rating: recipe.rating,
-											voteCount: recipe.vote_count,
-											size: "small",
-											showCount: true,
-											showNumber: false,
-										}),
+						: [
+							Div("search-page__grid", r.data.results.map(recipe => (
+								Div("recipe-card", [
+									recipe.main_image
+										? initEl("img", "recipe-card__image", undefined, (el: HTMLImageElement) =>
+										{
+											el.src = recipe.main_image!;
+											el.alt = recipe.title;
+										})
+										: Div("recipe-card__image-placeholder", ""),
+									Div("recipe-card__content", [
+										initEl("h3", "recipe-card__title", recipe.title),
+										initEl("p", "recipe-card__description", recipe.description),
+										Div("recipe-card__meta", [
+											Span([], `${recipe.active_time} мин активного времени`),
+											Span([], `${recipe.difficulty}/5 сложность`),
+											RatingStars({
+												rating: recipe.rating,
+												voteCount: recipe.vote_count,
+												size: "small",
+												showCount: true,
+												showNumber: false,
+											}),
+										]),
+										A([], "Подробнее", `/recipe/${recipe.id}`, () => toPage("recipe", { id: String(recipe.id) })),
 									]),
-									A([], "Подробнее", `/recipe/${recipe.id}`, () => toPage("recipe", { id: String(recipe.id) })),
-								]),
-							])
-						)))
+								])
+							))),
+							$(searchResults, r => r.data && r.data.total > 0 ? Pagination({
+								currentPage,
+								totalItems: r.data.total,
+								pageSize,
+								onPageChange: (page) =>
+								{
+									currentPage.v = page;
+									performSearch();
+								},
+								onPageSizeChange: (size) =>
+								{
+									pageSize.v = size;
+									currentPage.v = 1;
+									performSearch();
+								},
+								showPageSizeSelector: true,
+								showFirstLast: true,
+								showTotalInfo: true,
+							}) : null),
+						]
 				)),
 			]),
 		]),
