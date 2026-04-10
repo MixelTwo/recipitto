@@ -1,11 +1,11 @@
 import { $, Button, Div, Input, Table, TR, TD, initEl, injectStyles, Span, If } from "../littleLib.js";
 import
-	{
-		query_recipe_categories,
-		mutate_create_recipe_category,
-		mutate_update_recipe_category,
-		mutate_delete_recipe_category
-	} from "../api/client.js";
+{
+	query_recipe_categories,
+	mutate_create_recipe_category,
+	mutate_update_recipe_category,
+	mutate_delete_recipe_category
+} from "../api/client.js";
 import { RecipeCategoryDict } from "../api/types.js";
 import Spinner from "./spinner.js";
 
@@ -26,6 +26,11 @@ export default function RecipeCategoryManager()
 		return null;
 	};
 
+	// Loading states
+	const addingLoading = $(false);
+	const editingLoading = $(false);
+	const deletingLoading = $<number | null>(null);
+
 	// Handlers
 	const handleAdd = async () =>
 	{
@@ -36,6 +41,7 @@ export default function RecipeCategoryManager()
 			return;
 		}
 
+		addingLoading.v = true;
 		try
 		{
 			await (mutate_create_recipe_category().v.fetch({
@@ -48,6 +54,10 @@ export default function RecipeCategoryManager()
 		{
 			console.error("Failed to create category:", err);
 			alert("Ошибка при создании категории: " + (err.message || "неизвестная ошибка"));
+		}
+		finally
+		{
+			addingLoading.v = false;
 		}
 	};
 
@@ -72,6 +82,7 @@ export default function RecipeCategoryManager()
 			return;
 		}
 
+		editingLoading.v = true;
 		try
 		{
 			await (mutate_update_recipe_category(editingId.v).v.fetch({
@@ -85,12 +96,17 @@ export default function RecipeCategoryManager()
 			console.error("Failed to update category:", err);
 			alert("Ошибка при обновлении категории: " + (err.message || "неизвестная ошибка"));
 		}
+		finally
+		{
+			editingLoading.v = false;
+		}
 	};
 
 	const handleDelete = async (id: number) =>
 	{
 		if (!confirm("Удалить категорию? Все рецепты в этой категории будут перемещены в категорию по умолчанию.")) return;
 
+		deletingLoading.v = id;
 		try
 		{
 			await (mutate_delete_recipe_category(id).v.fetch() as any);
@@ -100,6 +116,10 @@ export default function RecipeCategoryManager()
 		{
 			console.error("Failed to delete category:", err);
 			alert("Ошибка при удалении категории: " + (err.message || "неизвестная ошибка"));
+		}
+		finally
+		{
+			deletingLoading.v = null;
 		}
 	};
 
@@ -112,7 +132,9 @@ export default function RecipeCategoryManager()
 				el.addEventListener("input", () => newCategoryName.v = el.value);
 				newCategoryName.w(v => el.value = v);
 			}),
-			Button(styles.button, "Добавить", handleAdd),
+			$(addingLoading, loading =>
+				Button(styles.button, loading ? "Добавление..." : "Добавить", loading ? undefined : handleAdd, loading ? (el) => { el.disabled = true; } : undefined)
+			),
 		]),
 
 		// Loading/error states
@@ -144,7 +166,9 @@ export default function RecipeCategoryManager()
 									}),
 								]),
 								TD([], [
-									Button(styles.smallButton, "Сохранить", saveEdit),
+									$(editingLoading, loading =>
+										Button(styles.smallButton, loading ? "Сохранение..." : "Сохранить", loading ? undefined : saveEdit, loading ? (el) => { el.disabled = true; } : undefined)
+									),
 									Button(styles.smallButton, "Отмена", cancelEdit),
 								]),
 							]),
@@ -154,7 +178,9 @@ export default function RecipeCategoryManager()
 								TD([], cat.name),
 								TD([], [
 									Button(styles.smallButton, "Редактировать", () => startEdit(cat)),
-									Button(styles.smallButton, "Удалить", () => handleDelete(cat.id)),
+									$(deletingLoading, loadingId =>
+										Button(styles.smallButton, loadingId === cat.id ? "Удаление..." : "Удалить", loadingId === cat.id ? undefined : () => handleDelete(cat.id), loadingId === cat.id ? (el) => { el.disabled = true; } : undefined)
+									),
 								]),
 							])
 						)

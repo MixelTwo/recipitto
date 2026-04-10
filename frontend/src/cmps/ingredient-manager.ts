@@ -14,10 +14,47 @@ export default function IngredientManager()
 	const editingName = $("");
 	const editingCategoryId = $<number | "">("");
 
+	// Validation
+	const validateIngredient = (name: string, categoryId: number | "", existingIngredients: IngredientDict[], excludeId?: number): string | null =>
+	{
+		const trimmed = name.trim();
+		if (trimmed.length === 0) return "Название не может быть пустым";
+		if (trimmed.length > 100) return "Название слишком длинное (максимум 100 символов)";
+		if (categoryId === "") return "Выберите категорию";
+		// Check duplicate (case-insensitive)
+		const lowerName = trimmed.toLowerCase();
+		const duplicate = existingIngredients.find(ing =>
+			ing.name.toLowerCase() === lowerName && ing.id !== excludeId
+		);
+		if (duplicate) return `Ингредиент с названием "${duplicate.name}" уже существует`;
+		return null;
+	};
+
+	// Error states
+	const addError = $<string | null>(null);
+	const editError = $<string | null>(null);
+
+	// Loading states
+	const addingLoading = $(false);
+	const editingLoading = $(false);
+	const deletingLoading = $<number | null>(null); // id of ingredient being deleted
+
 	// Handlers
 	const handleAdd = async () =>
 	{
-		if (!newIngredientName.v.trim() || newIngredientCategoryId.v === "") return;
+		const validationError = validateIngredient(
+			newIngredientName.v,
+			newIngredientCategoryId.v,
+			ingredients.v.data || [],
+			undefined
+		);
+		if (validationError)
+		{
+			addError.v = validationError;
+			return;
+		}
+		addError.v = null;
+		addingLoading.v = true;
 		try
 		{
 			await (mutate_create_ingredient().v.fetch({
@@ -31,6 +68,11 @@ export default function IngredientManager()
 		catch (err: any)
 		{
 			console.error("Failed to create ingredient:", err);
+			alert("Ошибка при создании ингредиента: " + (err.message || "неизвестная ошибка"));
+		}
+		finally
+		{
+			addingLoading.v = false;
 		}
 	};
 
@@ -41,6 +83,7 @@ export default function IngredientManager()
 		// Find category id by name (since IngredientDict only has category string)
 		const cat = categories.v.data?.find(c => c.name === ing.category);
 		editingCategoryId.v = cat ? cat.id : "";
+		editError.v = null;
 	};
 
 	const cancelEdit = () =>
@@ -48,11 +91,25 @@ export default function IngredientManager()
 		editingId.v = null;
 		editingName.v = "";
 		editingCategoryId.v = "";
+		editError.v = null;
 	};
 
 	const saveEdit = async () =>
 	{
-		if (!editingName.v.trim() || editingCategoryId.v === "" || editingId.v === null) return;
+		if (editingId.v === null) return;
+		const validationError = validateIngredient(
+			editingName.v,
+			editingCategoryId.v,
+			ingredients.v.data || [],
+			editingId.v
+		);
+		if (validationError)
+		{
+			editError.v = validationError;
+			return;
+		}
+		editError.v = null;
+		editingLoading.v = true;
 		try
 		{
 			await (mutate_update_ingredient(editingId.v).v.fetch({
@@ -65,12 +122,18 @@ export default function IngredientManager()
 		catch (err: any)
 		{
 			console.error("Failed to update ingredient:", err);
+			alert("Ошибка при обновлении ингредиента: " + (err.message || "неизвестная ошибка"));
+		}
+		finally
+		{
+			editingLoading.v = false;
 		}
 	};
 
 	const handleDelete = async (id: number) =>
 	{
 		if (!confirm("Удалить ингредиент?")) return;
+		deletingLoading.v = id;
 		try
 		{
 			await (mutate_delete_ingredient(id).v.fetch() as any);
@@ -79,6 +142,11 @@ export default function IngredientManager()
 		catch (err: any)
 		{
 			console.error("Failed to delete ingredient:", err);
+			alert("Ошибка при удалении ингредиента: " + (err.message || "неизвестная ошибка"));
+		}
+		finally
+		{
+			deletingLoading.v = null;
 		}
 	};
 
@@ -107,8 +175,11 @@ export default function IngredientManager()
 				el.addEventListener("change", () => newIngredientCategoryId.v = el.value === "" ? "" : Number(el.value));
 				newIngredientCategoryId.w(v => el.value = v.toString());
 			}) : Span([], "Загрузка категорий...")),
-			Button(styles.button, "Добавить", handleAdd),
+			$(addingLoading, loading =>
+				Button(styles.button, loading ? "Добавление..." : "Добавить", loading ? undefined : handleAdd, loading ? (el) => { el.disabled = true; } : undefined)
+			),
 		]),
+		$(addError, err => err && Div(styles.error, err)),
 
 		// Loading/error states
 		$(ingredients, i => i.isLoading && Div(styles.loading, [Spinner()])),
@@ -154,8 +225,11 @@ export default function IngredientManager()
 									editingCategoryId.w(v => el.value = v.toString());
 								})),
 								TD(styles.td, [
-									Button(styles.button, "Сохранить", saveEdit),
+									$(editingLoading, loading =>
+										Button(styles.button, loading ? "Сохранение..." : "Сохранить", loading ? undefined : saveEdit, loading ? (el) => { el.disabled = true; } : undefined)
+									),
 									Button([styles.button, styles.buttonSecondary], "Отмена", cancelEdit),
+									$(editError, err => err && Div(styles.error, err)),
 								]),
 							]);
 						}
@@ -167,7 +241,9 @@ export default function IngredientManager()
 								TD(styles.td, ing.category),
 								TD(styles.td, [
 									Button([styles.button, styles.buttonSecondary], "Редактировать", () => startEdit(ing)),
-									Button([styles.button, styles.buttonDanger], "Удалить", () => handleDelete(ing.id)),
+									$(deletingLoading, loadingId =>
+										Button([styles.button, styles.buttonDanger], loadingId === ing.id ? "Удаление..." : "Удалить", loadingId === ing.id ? undefined : () => handleDelete(ing.id), loadingId === ing.id ? (el) => { el.disabled = true; } : undefined)
+									),
 								]),
 							]);
 						}
