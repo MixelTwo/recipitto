@@ -18,6 +18,7 @@ import
     IngredientCategoryRequest,
     IngredientDict,
     IngredientRequest,
+    IngredientResponse,
     RecipeCategoryDict,
     RecipeCategoryRequest,
     RecipeImageDict,
@@ -300,6 +301,33 @@ export const query_ingredients = () => query<IngredientDict[], []>(
         return ingredients;
     },
     []
+);
+
+export const mutate_create_ingredient = () => query<IngredientResponse, [IngredientRequest]>(
+    null,
+    async (data: IngredientRequest) =>
+    {
+        const ingredient = await fetchJsonPost<IngredientDict>("/api/ingredients", data);
+        return ingredient;
+    }
+);
+
+export const mutate_update_ingredient = (id: number) => query<IngredientResponse, [IngredientRequest]>(
+    null,
+    async (data: IngredientRequest) =>
+    {
+        const ingredient = await fetchJsonPatch<IngredientDict>(`/api/ingredients/${id}`, data);
+        return ingredient;
+    }
+);
+
+export const mutate_delete_ingredient = (id: number) => query<boolean, []>(
+    null,
+    async () =>
+    {
+        await fetchJsonDelete(`/api/ingredients/${id}`);
+        return true;
+    }
 );
 
 // Search

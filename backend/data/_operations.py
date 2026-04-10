@@ -65,6 +65,7 @@ class Operations(OperationsBase):
     search_recipes = ("search_recipes", "Can search recipes")
 
     # Admin operations
+    admin_page = ("admin_page", "Can see admin page")
     admin_manage_users = ("admin_manage_users", "Can manage users")
     admin_view_statistics = ("admin_view_statistics", "Can view statistics")
     admin_moderate_recipes = ("admin_moderate_recipes", "Can moderate recipes")

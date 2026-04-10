@@ -3,6 +3,7 @@ import { $, Button, Div, H1, Input, Table, TR, TD, initEl, If } from "../littleL
 import { setPageTitle } from "../utils.js";
 import { query_recipes, query_recipe_categories, query_ingredients, mutate_delete_recipe } from "../api/client.js";
 import Spinner from "../cmps/spinner.js";
+import IngredientManager from "../cmps/ingredient-manager.js";
 
 export default function render()
 {
@@ -111,35 +112,7 @@ export default function render()
 				If($(activeTab, tab => tab === "ingredients"),
 					Div("admin-page__section", [
 						initEl("h2", "admin-page__subtitle", "Управление ингредиентами"),
-						$(ingredients, i => i.isLoading && Spinner()),
-						$(ingredients, i => i.error && Div("admin-page__error", "Ошибка загрузки ингредиентов")),
-						$(ingredients, i => i.data && (
-							Table("admin-page__table", [
-								initEl("thead", undefined, [
-									TR(undefined, [
-										initEl("th", [], "ID"),
-										initEl("th", [], "Название"),
-										initEl("th", [], "Категория"),
-										initEl("th", [], "Действия"),
-									]),
-								]),
-								initEl("tbody", undefined,
-									i.data.map(ing => TR(undefined, [
-										TD([], String(ing.id)),
-										TD([], ing.name),
-										TD([], ing.category),
-										TD([], [
-											Button([], "Редактировать", () => { }),
-											Button([], "Удалить", () => { }),
-										]),
-									]))
-								),
-							])
-						)),
-						Div("admin-page__form", [
-							Input([], "text", "Новый ингредиент..."),
-							Button([], "Добавить", () => { }),
-						]),
+						IngredientManager(),
 					])),
 				If($(activeTab, tab => tab === "users"),
 					Div("admin-page__section", [
@@ -148,5 +121,5 @@ export default function render()
 					])),
 			]),
 		]),
-	], "admin");
+	], "admin_page");
 }
