@@ -35,6 +35,7 @@ class Rating(SqlAlchemyBase):
         rating: int,
         *,
         creator: User | None = None,
+        commit: bool = True,
     ) -> "Rating":
         """Create a new Rating record.
 
@@ -44,6 +45,7 @@ class Rating(SqlAlchemyBase):
             rating: Rating value (1‑5).
             creator: Optional User object representing who created this record
                 (for logging purposes). Defaults to None.
+            commit: Whether to commit the transaction immediately (default True).
 
         Returns:
             Rating: The newly created Rating object.
@@ -53,7 +55,7 @@ class Rating(SqlAlchemyBase):
             recipe_id=recipe_id,
             rating=rating,
         )
-        Log.added(obj, creator)
+        Log.added(obj, creator, commit=commit)
         return obj
 
     def update(

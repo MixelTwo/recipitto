@@ -39,6 +39,7 @@ class RecipeStep(SqlAlchemyBase, ObjMixin):
         image_id: int | None = None,
         *,
         creator: User | None = None,
+        commit: bool = True,
     ) -> "RecipeStep":
         """Create a new RecipeStep record.
 
@@ -49,6 +50,7 @@ class RecipeStep(SqlAlchemyBase, ObjMixin):
             image_id: Optional ID of an Image to associate with the step.
             creator: Optional User object representing who created this record
                 (for logging purposes). Defaults to None.
+            commit: Whether to commit the transaction immediately (default True).
 
         Returns:
             RecipeStep: The newly created RecipeStep object.
@@ -59,7 +61,7 @@ class RecipeStep(SqlAlchemyBase, ObjMixin):
             text=text,
             image_id=image_id,
         )
-        Log.added(obj, creator)
+        Log.added(obj, creator, commit=commit)
         return obj
 
     def update(

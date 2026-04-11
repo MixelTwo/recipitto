@@ -1,3 +1,4 @@
+import os
 import sys
 
 from bafser import AppConfig, create_app
@@ -12,8 +13,8 @@ app, run = create_app(
     __name__,
     AppConfig(
         MESSAGE_TO_FRONTEND="",
-        DEV_MODE="dev" in sys.argv,
-        DELAY_MODE="delay" in sys.argv,
+        DEV_MODE="dev" in sys.argv or os.environ.get("DEV", "0") == "1",
+        DELAY_MODE="delay" in sys.argv or os.environ.get("DELAY", "0") == "1",
     ),
 )
 

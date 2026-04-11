@@ -44,6 +44,7 @@ class Comment(SqlAlchemyBase, ObjMixin):
         text: str,
         *,
         creator: User | None = None,
+        commit: bool = True,
     ) -> "Comment":
         """Create a new comment.
 
@@ -52,6 +53,7 @@ class Comment(SqlAlchemyBase, ObjMixin):
             recipe_id: ID of the recipe being commented on.
             text: Comment text content.
             creator: User who is creating the comment (for logging). Defaults to None.
+            commit: Whether to commit the transaction immediately (default True).
 
         Returns:
             Comment: The newly created comment instance.
@@ -61,7 +63,7 @@ class Comment(SqlAlchemyBase, ObjMixin):
             recipe_id=recipe_id,
             text=text,
         )
-        Log.added(obj, creator)
+        Log.added(obj, creator, commit=commit)
         return obj
 
     def update(

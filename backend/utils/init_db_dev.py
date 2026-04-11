@@ -83,7 +83,7 @@ def init_db_dev(db_sess: Session, config: AppConfig):
     ]
     ingredient_categories: list[IngredientCategory] = []
     for name in ingredient_category_names:
-        cat = IngredientCategory.new(name=name, creator=admin)
+        cat = IngredientCategory.new(name=name, creator=admin, commit=False)
         ingredient_categories.append(cat)
     db_sess.commit()
     print(f"Created {len(ingredient_categories)} ingredient categories")
@@ -136,7 +136,7 @@ def init_db_dev(db_sess: Session, config: AppConfig):
     ingredients: list[Ingredient] = []
     for name, cat_name in ingredient_data:
         cat = next(c for c in ingredient_categories if c.name == cat_name)
-        ing = Ingredient.new(name=name, category_id=cat.id, creator=admin)
+        ing = Ingredient.new(name=name, category_id=cat.id, creator=admin, commit=False)
         ingredients.append(ing)
     db_sess.commit()
     print(f"Created {len(ingredients)} ingredients")
@@ -153,7 +153,7 @@ def init_db_dev(db_sess: Session, config: AppConfig):
     ]
     recipe_categories: list[RecipeCategory] = []
     for name in recipe_category_names:
-        cat = RecipeCategory.new(name=name, creator=admin)
+        cat = RecipeCategory.new(name=name, creator=admin, commit=False)
         recipe_categories.append(cat)
     db_sess.commit()
     print(f"Created {len(recipe_categories)} recipe categories")
@@ -244,6 +244,7 @@ def init_db_dev(db_sess: Session, config: AppConfig):
             status=status,
             main_image_id=main_image.id if main_image else None,
             creator=admin,
+            commit=False,
         )
         recipes.append(recipe)
     db_sess.commit()
@@ -275,6 +276,7 @@ def init_db_dev(db_sess: Session, config: AppConfig):
                 text=text,
                 image_id=step_image.id if step_image else None,
                 creator=admin,
+                commit=False,
             )
     db_sess.commit()
     print("Created steps for recipes")
@@ -288,7 +290,7 @@ def init_db_dev(db_sess: Session, config: AppConfig):
         for _ in range(num_extra):
             img = random.choice(images)
             # ensure not already used as main image (optional)
-            RecipeImage.new(recipe_id=recipe.id, image_id=img.id, creator=admin)
+            RecipeImage.new(recipe_id=recipe.id, image_id=img.id, creator=admin, commit=False)
     db_sess.commit()
     print("Created extra recipe images")
 
@@ -309,6 +311,7 @@ def init_db_dev(db_sess: Session, config: AppConfig):
                 quantity=quantity,
                 unit=unit,
                 creator=admin,
+                commit=False,
             )
     db_sess.commit()
     print("Created recipe ingredients")
@@ -333,7 +336,7 @@ def init_db_dev(db_sess: Session, config: AppConfig):
         commenters = random.sample(users, min(num_comments, len(users)))
         for user in commenters:
             text = random.choice(comment_texts)
-            Comment.new(user_id=user.id, recipe_id=recipe.id, text=text, creator=admin)
+            Comment.new(user_id=user.id, recipe_id=recipe.id, text=text, creator=admin, commit=False)
     db_sess.commit()
     print("Created comments")
 
@@ -346,7 +349,7 @@ def init_db_dev(db_sess: Session, config: AppConfig):
         raters = random.sample(users, min(num_ratings, len(users)))
         for user in raters:
             rating_value = random.randint(1, 5)
-            Rating.new(user_id=user.id, recipe_id=recipe.id, rating=rating_value, creator=admin)
+            Rating.new(user_id=user.id, recipe_id=recipe.id, rating=rating_value, creator=admin, commit=False)
     # Recalculate recipe stats
     for recipe in recipes:
         Rating.recalculate_recipe_stats(recipe.id, db_sess=db_sess)
@@ -360,7 +363,7 @@ def init_db_dev(db_sess: Session, config: AppConfig):
         num_favs = random.randint(0, 10)
         fav_recipes = random.sample(recipes, min(num_favs, len(recipes)))
         for recipe in fav_recipes:
-            Favorite.new(user_id=user.id, recipe_id=recipe.id, creator=admin)
+            Favorite.new(user_id=user.id, recipe_id=recipe.id, creator=admin, commit=False)
     db_sess.commit()
     print("Created favorites")
 

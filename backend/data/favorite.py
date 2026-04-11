@@ -35,6 +35,7 @@ class Favorite(SqlAlchemyBase):
         recipe_id: int,
         *,
         creator: User | None = None,
+        commit: bool = True,
     ) -> "Favorite":
         """Create a new Favorite record.
 
@@ -43,6 +44,7 @@ class Favorite(SqlAlchemyBase):
             recipe_id: ID of the recipe being favorited.
             creator: Optional User object representing who created this record
                 (for logging purposes). Defaults to None.
+            commit: Whether to commit the transaction immediately (default True).
 
         Returns:
             Favorite: The newly created Favorite object.
@@ -51,7 +53,7 @@ class Favorite(SqlAlchemyBase):
             user_id=user_id,
             recipe_id=recipe_id,
         )
-        Log.added(obj, creator)
+        Log.added(obj, creator, commit=commit)
         return obj
 
     @classmethod

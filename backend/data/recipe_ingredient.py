@@ -39,6 +39,7 @@ class RecipeIngredient(SqlAlchemyBase):
         unit: str,
         *,
         creator: User | None = None,
+        commit: bool = True,
     ) -> "RecipeIngredient":
         """Create a new RecipeIngredient record.
 
@@ -49,6 +50,7 @@ class RecipeIngredient(SqlAlchemyBase):
             unit: Measurement unit for the quantity.
             creator: Optional User object representing who created this record
                 (for logging purposes). Defaults to None.
+            commit: Whether to commit the transaction immediately (default True).
 
         Returns:
             RecipeIngredient: The newly created RecipeIngredient object.
@@ -59,7 +61,7 @@ class RecipeIngredient(SqlAlchemyBase):
             quantity=quantity,
             unit=unit,
         )
-        Log.added(obj, creator)
+        Log.added(obj, creator, commit=commit)
         return obj
 
     def update(

@@ -33,6 +33,7 @@ class RecipeImage(SqlAlchemyBase, ObjMixin):
         image_id: int,
         *,
         creator: User | None = None,
+        commit: bool = True,
     ) -> "RecipeImage":
         """Create a new RecipeImage record.
 
@@ -41,6 +42,7 @@ class RecipeImage(SqlAlchemyBase, ObjMixin):
             image_id: ID of the Image record to associate.
             creator: Optional User object representing who created this record
                 (for logging purposes). Defaults to None.
+            commit: Whether to commit the transaction immediately (default True).
 
         Returns:
             RecipeImage: The newly created RecipeImage object.
@@ -49,7 +51,7 @@ class RecipeImage(SqlAlchemyBase, ObjMixin):
             recipe_id=recipe_id,
             image_id=image_id,
         )
-        Log.added(obj, creator)
+        Log.added(obj, creator, commit=commit)
         return obj
 
     @classmethod

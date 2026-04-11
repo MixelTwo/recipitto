@@ -35,19 +35,20 @@ class RecipeCategory(SqlAlchemyBase, ObjMixin):
         return value
 
     @staticmethod
-    def new(name: str, *, creator: User | None = None) -> "RecipeCategory":
+    def new(name: str, *, creator: User | None = None, commit: bool = True) -> "RecipeCategory":
         """Create a new RecipeCategory record.
 
         Args:
             name: Display name for the category.
             creator: Optional User object representing who created this record
                 (for logging purposes). Defaults to None.
+            commit: Whether to commit the transaction immediately (default True).
 
         Returns:
             RecipeCategory: The newly created RecipeCategory object.
         """
         obj = RecipeCategory(name=name)
-        Log.added(obj, creator)
+        Log.added(obj, creator, commit=commit)
         return obj
 
     def update(self, name: str | None, *, actor: User | None = None):

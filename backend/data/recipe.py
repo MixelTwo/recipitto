@@ -102,6 +102,7 @@ class Recipe(SqlAlchemyBase, ObjMixin):
         main_image_id: int | None = None,
         *,
         creator: User | None = None,
+        commit: bool = True,
     ) -> "Recipe":
         """Create a new recipe record.
 
@@ -116,6 +117,7 @@ class Recipe(SqlAlchemyBase, ObjMixin):
             status: Initial status (defaults to DRAFT).
             main_image_id: Optional ID of the main image.
             creator: User who performs the creation (for logging).
+            commit: Whether to commit the transaction immediately (default True).
 
         Returns:
             Recipe: The newly created Recipe instance.
@@ -135,7 +137,7 @@ class Recipe(SqlAlchemyBase, ObjMixin):
             from bafser import get_datetime_now
 
             obj.published_at = get_datetime_now()
-        Log.added(obj, creator)
+        Log.added(obj, creator, commit=commit)
         return obj
 
     def update(

@@ -40,7 +40,7 @@ class Ingredient(SqlAlchemyBase, ObjMixin):
         return value
 
     @staticmethod
-    def new(name: str, category_id: int, *, creator: User | None = None) -> "Ingredient":
+    def new(name: str, category_id: int, *, creator: User | None = None, commit: bool = True) -> "Ingredient":
         """Create a new Ingredient record.
 
         Args:
@@ -48,12 +48,13 @@ class Ingredient(SqlAlchemyBase, ObjMixin):
             category_id: ID of the ingredient category.
             creator: Optional User object representing who created this record
                 (for logging purposes). Defaults to None.
+            commit: Whether to commit the transaction immediately (default True).
 
         Returns:
             Ingredient: The newly created Ingredient object.
         """
         obj = Ingredient(name=name, category_id=category_id)
-        Log.added(obj, creator)
+        Log.added(obj, creator, commit=commit)
         return obj
 
     def update(self, name: str | None, category_id: int | None, *, actor: User | None = None):
