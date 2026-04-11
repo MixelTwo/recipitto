@@ -24,6 +24,13 @@ export interface PaginationProps
 	showTotalInfo?: boolean;
 }
 
+/**
+ * Pagination component for navigating through paginated data.
+ * Supports page size selection, first/last page buttons, and total items info.
+ *
+ * @param props - Configuration properties
+ * @returns A div element containing the pagination controls
+ */
 export default function Pagination(props: PaginationProps): HTMLDivElement
 {
 	const {
@@ -70,7 +77,8 @@ export default function Pagination(props: PaginationProps): HTMLDivElement
 	};
 
 	// Compute page range for buttons
-	const getPageRange = (current: number, total: number) => {
+	const getPageRange = (current: number, total: number) =>
+	{
 		if (total <= 1) return [];
 		const half = Math.floor(maxPageButtons / 2);
 		let start = Math.max(1, current - half);
@@ -95,7 +103,8 @@ export default function Pagination(props: PaginationProps): HTMLDivElement
 				() => $(totalItemsState, total => total > 0 ?
 					Span(styles.totalInfo, $(totalItemsState, total =>
 						$(pageSizeState, size =>
-							$(currentPageState, page => {
+							$(currentPageState, page =>
+							{
 								const start = (page - 1) * size + 1;
 								const end = Math.min(total, page * size);
 								return `Показано ${start}-${end} из ${total}`;
@@ -152,7 +161,8 @@ export default function Pagination(props: PaginationProps): HTMLDivElement
 			Div(styles.pageButtons, [
 				$(currentPageState, current =>
 					$(totalItemsState, totalItems =>
-						$(pageSizeState, size => {
+						$(pageSizeState, size =>
+						{
 							const totalPages = Math.max(1, Math.ceil(totalItems / size));
 							const range = getPageRange(current, totalPages);
 							return range.map(page =>
@@ -171,7 +181,8 @@ export default function Pagination(props: PaginationProps): HTMLDivElement
 			// Next page button
 			Button([styles.navButton, $(currentPageState, current =>
 				$(totalItemsState, totalItems =>
-					$(pageSizeState, size => {
+					$(pageSizeState, size =>
+					{
 						const totalPages = Math.max(1, Math.ceil(totalItems / size));
 						return current >= totalPages ? styles.navButtonDisabled : "";
 					})
@@ -181,7 +192,8 @@ export default function Pagination(props: PaginationProps): HTMLDivElement
 				() => handlePageChange(currentPageState.v + 1),
 				el => currentPageState.w(current =>
 					$(totalItemsState, totalItems =>
-						$(pageSizeState, size => {
+						$(pageSizeState, size =>
+						{
 							const totalPages = Math.max(1, Math.ceil(totalItems / size));
 							el.disabled = current >= totalPages;
 						})
@@ -192,20 +204,23 @@ export default function Pagination(props: PaginationProps): HTMLDivElement
 			If($(showFirstLast),
 				() => Button([styles.navButton, $(currentPageState, current =>
 					$(totalItemsState, totalItems =>
-						$(pageSizeState, size => {
+						$(pageSizeState, size =>
+						{
 							const totalPages = Math.max(1, Math.ceil(totalItems / size));
 							return current >= totalPages ? styles.navButtonDisabled : "";
 						})
 					)
 				)],
 					"»",
-					() => {
+					() =>
+					{
 						const totalPages = computeTotalPages();
 						handlePageChange(totalPages);
 					},
 					el => currentPageState.w(current =>
 						$(totalItemsState, totalItems =>
-							$(pageSizeState, size => {
+							$(pageSizeState, size =>
+							{
 								const totalPages = Math.max(1, Math.ceil(totalItems / size));
 								el.disabled = current >= totalPages;
 							})
@@ -226,7 +241,8 @@ export default function Pagination(props: PaginationProps): HTMLDivElement
 					// Set current value and max
 					currentPageState.w(v => el.value = v.toString());
 					// Update max when total pages changes
-					const updateMax = () => {
+					const updateMax = () =>
+					{
 						const total = computeTotalPages();
 						el.max = total.toString();
 					};
@@ -254,7 +270,8 @@ export default function Pagination(props: PaginationProps): HTMLDivElement
 					});
 				}),
 				Span(styles.pageIndicatorText, $(totalItemsState, totalItems =>
-					$(pageSizeState, size => {
+					$(pageSizeState, size =>
+					{
 						const totalPages = Math.max(1, Math.ceil(totalItems / size));
 						return ` из ${totalPages}`;
 					})

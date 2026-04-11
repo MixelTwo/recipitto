@@ -1,7 +1,22 @@
 import { FetchError, onPageCleanup, randomStr, state, type State } from "../littleLib.js"
 
+/**
+ * Union type representing a query in one of its possible states (idle, loading, success, error).
+ * @template R - Result type
+ * @template A - Argument tuple type
+ */
 export type Query<R, A extends any[]> = Query_base<R, A> & (Query_success<R> | Query_error | Query_loading<R> | Query_idle)
+
+/**
+ * Reactive state wrapper for a Query.
+ * @template R - Result type
+ * @template A - Argument tuple type
+ */
 export type QueryState<R, A extends any[]> = State<Readonly<Query<R, A>>>;
+
+/**
+ * Represents an API error with optional message, HTTP status, and original exception.
+ */
 export interface ApiError
 {
 	msg?: string,
@@ -125,7 +140,21 @@ class QueryCacheCls
 	}
 }
 
+/**
+ * Global cache for query results, enabling cross‑component data sharing and invalidation.
+ */
 export const QueryCache = new QueryCacheCls();
+
+/**
+ * Create a reactive query state that manages loading, success, error states, and caching.
+ *
+ * @param name - Cache key for this query (null for non‑cached queries)
+ * @param fetch - Async function that performs the actual data fetching
+ * @param callFetch - Optional initial arguments to call fetch immediately
+ * @returns A reactive QueryState that can be observed and triggered
+ * @template R - Result type
+ * @template A - Argument tuple type
+ */
 export function query<R, A extends any[]>(name: string | null, fetch: (...args: A) => R | Promise<R>, callFetch?: A): QueryState<R, A>
 {
 	const queryId = randomStr(10);

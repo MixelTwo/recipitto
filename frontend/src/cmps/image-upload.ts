@@ -21,6 +21,12 @@ export interface ImageUploadProps
 	accept?: string;
 }
 
+/**
+ * Image upload component with drag‑and‑drop support, preview, and existing image gallery.
+ *
+ * @param props - Configuration properties
+ * @returns A div element containing the upload interface
+ */
 export default function ImageUpload(props: ImageUploadProps): HTMLDivElement
 {
 	const files = $(<File[]>[]);

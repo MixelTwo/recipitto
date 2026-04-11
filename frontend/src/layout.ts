@@ -5,6 +5,15 @@ import LoginForm from "./cmps/login-form.js";
 import { $, A, Button, Div, If, initEl, SetContent, Span, type ElChildren } from "./littleLib.js";
 import { toPage } from "./main.js";
 
+/**
+ * Main layout component that provides the application shell.
+ * Includes header with navigation, user authentication state, and permission-based content rendering.
+ *
+ * @param children - The content to render inside the layout body
+ * @param permission - Optional permission string required to view the content. If provided,
+ *                    the layout will check if the current user has this permission.
+ * @returns The rendered layout element
+ */
 export default function Layout(children: ElChildren, permission?: string)
 {
 	const user = query_user();
@@ -57,6 +66,14 @@ export default function Layout(children: ElChildren, permission?: string)
 	]))
 }
 
+/**
+ * Layout wrapper that provides user data to children.
+ * Renders loading spinner, authentication error, or passes user data to children.
+ *
+ * @param permission - Permission string required to view the content, or null for no permission check
+ * @param children - Function that receives the authenticated user and returns content
+ * @returns The rendered layout with user context
+ */
 export function LayoutWithUser(permission: string | null, children: (user: User) => ElChildren)
 {
 	const user = query_user();

@@ -19,6 +19,12 @@ import IngredientList from "../cmps/ingredient-list.js";
 import RecipeSteps from "../cmps/recipe-steps.js";
 import RatingWidget from "../cmps/rating-widget.js";
 
+/**
+ * Recipe detail page displaying full recipe information, ingredients, steps, comments, and interactions.
+ *
+ * @param params - Object containing recipe ID as a string
+ * @returns The rendered recipe page
+ */
 export default function render({ id }: { id: string })
 {
 	const recipeId = parseInt(id);

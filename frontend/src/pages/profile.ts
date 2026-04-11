@@ -8,6 +8,11 @@ import RatingStars from "../cmps/rating-stars.js";
 import FavoriteRecipeCard from "../cmps/favorite-recipe-card.js";
 import ProfileEditModal from "../cmps/profile-edit-modal.js";
 
+/**
+ * User profile page with tabs for recipes, favorites, and settings.
+ *
+ * @returns The rendered profile page
+ */
 export default function render()
 {
 	setPageTitle("Мой профиль");

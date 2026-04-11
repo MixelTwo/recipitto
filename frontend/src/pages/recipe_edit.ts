@@ -20,6 +20,12 @@ import Spinner from "../cmps/spinner.js";
 import IngredientPicker from "../cmps/ingredient-picker.js";
 import ImageUpload from "../cmps/image-upload.js";
 
+/**
+ * Recipe creation/editing page with form for recipe metadata, ingredients, steps, and images.
+ *
+ * @param params - Object containing optional recipe ID (for editing) or empty for new recipe
+ * @returns The rendered recipe editor
+ */
 export default function render({ id }: { id?: string })
 {
 	const isNew = !id;

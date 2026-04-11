@@ -14,6 +14,11 @@ import IngredientManager from "../cmps/ingredient-manager.js";
 import RecipeCategoryManager from "../cmps/recipe-category-manager.js";
 import IngredientCategoryManager from "../cmps/ingredient-category-manager.js";
 
+/**
+ * Admin panel page for managing recipes, categories, ingredients, and users.
+ *
+ * @returns The rendered admin interface
+ */
 export default function render()
 {
 	setPageTitle("Админ-панель");

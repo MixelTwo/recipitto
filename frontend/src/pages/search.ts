@@ -8,6 +8,11 @@ import RatingStars from "../cmps/rating-stars.js";
 import IngredientFilter, { type IngredientFilterMode } from "../cmps/ingredient-filter.js";
 import Pagination from "../cmps/pagination.js";
 
+/**
+ * Search page component with advanced filtering, sorting, and pagination.
+ *
+ * @returns The rendered search interface
+ */
 export default function render()
 {
 	setPageTitle("Поиск рецептов");

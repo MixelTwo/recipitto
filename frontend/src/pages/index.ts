@@ -6,6 +6,12 @@ import { query_recipes, query_recipe_categories } from "../api/client.js";
 import Spinner from "../cmps/spinner.js";
 import RatingStars from "../cmps/rating-stars.js";
 
+/**
+ * Home page component.
+ * Displays hero section, search bar, popular recipes, and categories.
+ *
+ * @returns The rendered page content
+ */
 export default function render()
 {
 	setPageTitle("Recipitto — Домашняя кулинария");

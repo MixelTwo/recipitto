@@ -4,10 +4,18 @@ import Spinner from "./spinner.js";
 
 export interface LoginFormProps
 {
+	/** Callback invoked after successful authentication */
 	onSuccess?: () => void;
+	/** Callback invoked when the user cancels the login form */
 	onCancel?: () => void;
 }
 
+/**
+ * Login form component with username/password fields, validation, and API integration.
+ *
+ * @param props - Configuration properties
+ * @returns Form elements as ElChildren
+ */
 export default function LoginForm(props: LoginFormProps): ElChildren
 {
 	const login = query_auth();
