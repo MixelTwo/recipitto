@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from data.rating import Rating
 from data.recipe import Recipe, RecipeDict, RecipeStatus
 from data.recipe_ingredient import RecipeIngredient
+from utils import normalize_for_search
 
 bp = Blueprint("search", __name__)
 
@@ -43,7 +44,8 @@ def search_recipes(db_sess: Session) -> SearchRecipesResponse:
 
     # Text search on title
     if query:
-        like_pattern = f"%{query.lower()}%"
+        normalized_query = normalize_for_search(query)
+        like_pattern = f"%{normalized_query}%"
         q = q.filter(Recipe.title_normalized.like(like_pattern))
 
     # Filter by category
