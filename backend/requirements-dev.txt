@@ -19,3 +19,8 @@ pytest-mock==3.14.0
 
 # Optional: for HTTP testing (if needed)
 requests-mock==1.12.1
+
+# Documentation
+mkdocs==1.6.1
+mkdocs-material==9.5.30
+mkdocstrings[python]==0.26.0

@@ -13,15 +13,40 @@ from utils import normalize_for_search
 
 
 class RecipeStatus(enum.Enum):
+    """Possible statuses of a recipe."""
+
     DRAFT = "draft"
     PUBLISHED = "published"
     DELETED = "deleted"
 
 
 type TRecipeStatus = Literal["draft", "published", "deleted"]
+"""Type alias for recipe status string values."""
 
 
 class Recipe(SqlAlchemyBase, ObjMixin):
+    """Recipe model representing a cooking recipe.
+
+    Attributes:
+        title: Recipe title (max 128 characters).
+        title_normalized: Normalized title for search (auto‑generated).
+        description: Full recipe description.
+        active_time: Active preparation time in minutes.
+        total_time: Total time including waiting/cooking in minutes.
+        difficulty: Difficulty level from 1 (easiest) to 5 (hardest).
+        author_id: Foreign key to the user who created the recipe.
+        category_id: Foreign key to the recipe category.
+        main_image_id: Optional foreign key to the main recipe image.
+        rating: Average rating (0.0–5.0).
+        vote_count: Number of ratings received.
+        created_at: Timestamp when the recipe was created.
+        status: Current status (draft, published, deleted).
+        published_at: Timestamp when the recipe was published (if published).
+        author: Relationship to the author User object.
+        category: Relationship to the RecipeCategory object.
+        main_image: Relationship to the Image object (if any).
+    """
+
     __tablename__ = Tables.Recipe
     __table_args__ = (
         Index("idx_recipe_status", "status"),
@@ -51,7 +76,16 @@ class Recipe(SqlAlchemyBase, ObjMixin):
     main_image: Mapped[Image | None] = relationship(foreign_keys=[main_image_id], lazy="joined", init=False)
 
     @validates("title")
-    def update_title_normalized(self, key: str, value: str):
+    def update_title_normalized(self, key: str, value: str) -> str:
+        """Automatically update the normalized title when title changes.
+
+        Args:
+            key: Field name (always "title").
+            value: New title value.
+
+        Returns:
+            str: The unchanged value (as required by @validates).
+        """
         self.title_normalized = normalize_for_search(value)
         return value
 
@@ -68,7 +102,24 @@ class Recipe(SqlAlchemyBase, ObjMixin):
         main_image_id: int | None = None,
         *,
         creator: User | None = None,
-    ):
+    ) -> "Recipe":
+        """Create a new recipe record.
+
+        Args:
+            title: Recipe title.
+            description: Recipe description.
+            active_time: Active preparation time in minutes.
+            total_time: Total time in minutes.
+            difficulty: Difficulty level (1‑5).
+            author: User who creates the recipe.
+            category_id: ID of the recipe category.
+            status: Initial status (defaults to DRAFT).
+            main_image_id: Optional ID of the main image.
+            creator: User who performs the creation (for logging).
+
+        Returns:
+            Recipe: The newly created Recipe instance.
+        """
         obj = Recipe(
             title=title,
             description=description,
@@ -100,6 +151,24 @@ class Recipe(SqlAlchemyBase, ObjMixin):
         *,
         actor: User | None = None,
     ):
+        """Update recipe fields.
+
+        Only provided fields are updated. When main_image_id changes, the old
+        image is deleted. When status changes to PUBLISHED, published_at is set
+        to the current time; when changing from PUBLISHED to DRAFT or DELETED,
+        published_at is cleared.
+
+        Args:
+            title: New title.
+            description: New description.
+            active_time: New active time.
+            total_time: New total time.
+            difficulty: New difficulty.
+            category_id: New category ID.
+            main_image_id: New main image ID (or None to remove).
+            status: New status.
+            actor: User who performs the update (for logging).
+        """
         # Track status change for published_at
         old_status = self.status
         if title is not None:
@@ -131,6 +200,11 @@ class Recipe(SqlAlchemyBase, ObjMixin):
         Log.updated(self, actor)
 
     def get_dict(self) -> "RecipeDict":
+        """Serialize recipe to a dictionary suitable for JSON response.
+
+        Returns:
+            RecipeDict with all public fields.
+        """
         return {
             "id": self.id,
             "title": self.title,
@@ -151,6 +225,25 @@ class Recipe(SqlAlchemyBase, ObjMixin):
 
 
 class RecipeDict(TypedDict):
+    """Type definition for recipe JSON representation.
+
+    Attributes:
+        id: Recipe ID.
+        title: Recipe title.
+        author: Author's login name.
+        description: Recipe description.
+        active_time: Active preparation time in minutes.
+        total_time: Total time in minutes.
+        difficulty: Difficulty level (1‑5).
+        rating: Average rating.
+        vote_count: Number of ratings.
+        created_at: ISO‑formatted creation timestamp.
+        status: Recipe status string.
+        published_at: ISO‑formatted publication timestamp (or None).
+        category: Category name.
+        main_image: Image path (or None).
+    """
+
     id: int
     title: str
     author: str

@@ -92,6 +92,44 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push and pull
   - `tests/integration/` – Integration tests for API endpoints
 - `alembic/` – Database migrations (if used)
 
+## Documentation
+
+The project uses **MkDocs** with **mkdocstrings** for automatic API documentation generation.
+
+### Building Documentation
+
+Install documentation dependencies (already included in `requirements-dev.txt`):
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+Build the static site:
+
+```bash
+mkdocs build
+```
+
+The generated HTML files will be placed in the `site/` directory.
+
+### Serving Documentation Locally
+
+To preview the documentation with live reload:
+
+```bash
+mkdocs serve
+```
+
+Then open `http://localhost:8000` in your browser.
+
+### Documentation Structure
+
+- **Home**: Overview and quick start.
+- **API Reference**: Auto‑generated documentation for all blueprints and data models.
+- **Development**: Setup, testing, and database guides.
+
+The documentation source files are located in the `docs/` directory, and the configuration is in `mkdocs.yml`.
+
 ## Coverage Report
 
 Current coverage (as of latest run):

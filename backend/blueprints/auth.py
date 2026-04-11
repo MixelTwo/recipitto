@@ -1,5 +1,5 @@
 from bafser import JsonObj, create_access_token, doc_api, response_msg, use_db_sess
-from flask import Blueprint, jsonify
+from flask import Blueprint, Response, jsonify
 from flask_jwt_extended import set_access_cookies, unset_jwt_cookies  # pyright: ignore[reportUnknownVariableType]
 from sqlalchemy.orm import Session
 
@@ -9,6 +9,13 @@ bp = Blueprint("auth", __name__)
 
 
 class LoginJson(JsonObj):
+    """JSON schema for user login.
+
+    Attributes:
+        login: Username or email.
+        password: User password.
+    """
+
     login: str
     password: str
 
@@ -16,7 +23,18 @@ class LoginJson(JsonObj):
 @bp.post("/api/auth")
 @doc_api(req=LoginJson, res=UserDict, desc="Get auth cookie")
 @use_db_sess
-def login(db_sess: Session):
+def login(db_sess: Session) -> Response:
+    """Authenticate user and set JWT cookie.
+
+    Args:
+        db_sess: Database session (injected by @use_db_sess).
+
+    Returns:
+        Response: JSON response containing user data with JWT cookie set.
+
+    Raises:
+        HTTPException: 400 if login or password is incorrect.
+    """
     data = LoginJson.get_from_req()
     user = User.get_by_login(db_sess, data.login)
 
@@ -31,7 +49,12 @@ def login(db_sess: Session):
 
 @bp.post("/api/logout")
 @doc_api(desc="Remove auth cookie")
-def logout():
+def logout() -> Response:
+    """Clear authentication cookies.
+
+    Returns:
+        Response: Success message with JWT cookies removed.
+    """
     response = response_msg("logout successful")
     unset_jwt_cookies(response)
     return response
