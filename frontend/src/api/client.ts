@@ -422,6 +422,7 @@ export const query_search_recipes = () => query(
         if (params.sort_order) search.append("sort_order", params.sort_order);
         if (params.page !== undefined) search.append("page", params.page.toString());
         if (params.per_page !== undefined) search.append("per_page", params.per_page.toString());
+        if (params.include_drafts) search.append("include_drafts", "true");
         url.search = search.toString();
         const response = await fetchJsonGet<SearchResponse>(url.toString());
         return response;

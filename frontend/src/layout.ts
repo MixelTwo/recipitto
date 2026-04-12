@@ -34,7 +34,14 @@ export default function Layout(children: ElChildren, permission?: string)
 		})),
 		Div("layout__header", [
 			Div([], [
-				A("layout__logo", "Logo", "/", () => toPage("index")),
+				A("layout__logo", (() =>
+				{
+					const img = document.createElement('img');
+					img.src = "/imgs/icon.png";
+					img.alt = "Logo";
+					img.className = "layout__logo-img";
+					return img;
+				})(), "/", () => toPage("index")),
 				Div("layout__links", [
 					A([], "Главная", "/", () => toPage("index")),
 					A([], "Поиск", "/search", () => toPage("search")),

@@ -257,6 +257,7 @@ export interface SearchQuery
 	sort_order?: "asc" | "desc";
 	page?: number;
 	per_page?: number;
+	include_drafts?: boolean;
 }
 
 export interface SearchResponse

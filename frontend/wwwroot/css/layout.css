@@ -23,6 +23,12 @@
 	font-size: 1.5em;
 }
 
+.layout__logo-img {
+	height: 2em;
+	width: auto;
+	vertical-align: middle;
+}
+
 .layout__links {
 	flex-grow: 1;
 	padding: 1em;

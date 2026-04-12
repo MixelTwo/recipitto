@@ -2,11 +2,12 @@ import { LayoutWithUser } from "../layout.js";
 import { $, A, Button, Div, H1, Span, initEl, If, type ElChildren, State } from "../littleLib.js";
 import { toPage } from "../main.js";
 import { setPageTitle } from "../utils.js";
-import { query_recipes, query_user, query_favorites } from "../api/client.js";
+import { query_favorites, query_search_recipes } from "../api/client.js";
 import Spinner from "../cmps/spinner.js";
 import RatingStars from "../cmps/rating-stars.js";
 import FavoriteRecipeCard from "../cmps/favorite-recipe-card.js";
 import ProfileEditModal from "../cmps/profile-edit-modal.js";
+import Pagination from "../cmps/pagination.js";
 
 /**
  * User profile page with tabs for recipes, favorites, and settings.
@@ -19,10 +20,25 @@ export default function render()
 
 	LayoutWithUser(null, user =>
 	{
-		const recipes = query_recipes({ author_id: user.id }); // mock filtering
+		const recipes = query_search_recipes();
+		const currentPage = $(1);
+		const pageSize = $(20);
 		const favorites = query_favorites();
 		const activeTab = $<"recipes" | "favorites" | "settings">("recipes");
 		const showEditModal = $(false);
+
+		// Function to fetch recipes with current pagination
+		const fetchRecipes = () =>
+		{
+			recipes.v.refetch({
+				author_id: user.id,
+				page: currentPage.v,
+				per_page: pageSize.v,
+				include_drafts: true,
+			});
+		};
+		// Initial fetch
+		fetchRecipes();
 
 		return Div("profile-page", [
 			If(showEditModal, () => ProfileEditModal({
@@ -67,34 +83,55 @@ export default function render()
 						$(recipes, r => r.isLoading && Spinner()),
 						$(recipes, r => r.error && Div("profile-page__error", "Ошибка загрузки рецептов")),
 						$(recipes, r => r.data && (
-							r.data.length === 0
+							r.data.results.length === 0
 								? Div("profile-page__empty", "У вас пока нет рецептов. " + A([], "Создать первый", "/recipe/new", () => toPage("recipe_create", {})))
-								: Div("profile-page__grid", r.data.map(recipe => (
-									Div("recipe-card", [
-										recipe.main_image
-											? initEl("img", "recipe-card__image", undefined, (el: HTMLImageElement) =>
-											{
-												el.src = recipe.main_image!;
-												el.alt = recipe.title;
-											})
-											: Div("recipe-card__image-placeholder", ""),
-										Div("recipe-card__content", [
-											initEl("h3", "recipe-card__title", recipe.title),
-											initEl("p", "recipe-card__description", recipe.description),
-											Div("recipe-card__meta", [
-												Span([], `${recipe.active_time} мин`),
-												Span([], `${recipe.difficulty}/5`),
-												RatingStars({
-													rating: recipe.rating,
-													size: "small",
-													showCount: false,
-													showNumber: false,
-												}),
+								: [
+									Div("profile-page__grid", r.data.results.map(recipe => (
+										Div("recipe-card", [
+											recipe.main_image
+												? initEl("img", "recipe-card__image", undefined, (el: HTMLImageElement) =>
+												{
+													el.src = recipe.main_image!;
+													el.alt = recipe.title;
+												})
+												: Div("recipe-card__image-placeholder", ""),
+											Div("recipe-card__content", [
+												initEl("h3", "recipe-card__title", recipe.title),
+												initEl("p", "recipe-card__description", recipe.description),
+												Div("recipe-card__meta", [
+													Span([], `${recipe.active_time} мин`),
+													Span([], `${recipe.difficulty}/5`),
+													RatingStars({
+														rating: recipe.rating,
+														size: "small",
+														showCount: false,
+														showNumber: false,
+													}),
+												]),
+												A([], "Подробнее", `/recipe/${recipe.id}`, () => toPage("recipe", { id: String(recipe.id) })),
 											]),
-											A([], "Подробнее", `/recipe/${recipe.id}`, () => toPage("recipe", { id: String(recipe.id) })),
-										]),
-									])
-								)))
+										])
+									))),
+									$(recipes, r => r.data && r.data.total > 0 ? Pagination({
+										currentPage,
+										totalItems: r.data.total,
+										pageSize,
+										onPageChange: (page) =>
+										{
+											currentPage.v = page;
+											fetchRecipes();
+										},
+										onPageSizeChange: (size) =>
+										{
+											pageSize.v = size;
+											currentPage.v = 1;
+											fetchRecipes();
+										},
+										showPageSizeSelector: true,
+										showFirstLast: true,
+										showTotalInfo: true,
+									}) : null),
+								]
 						)),
 					])),
 				$(activeTab, tab => tab === "favorites" && Div("profile-page__favorites", [

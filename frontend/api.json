@@ -568,7 +568,8 @@
       "sort_by": "'relevance' | 'rating' | 'date' | 'active_time' | 'total_time' | 'difficulty'",
       "sort_order": "'asc' | 'desc'",
       "page": "int, default: 1",
-      "per_page": "int, default: 20"
+      "per_page": "int, default: 20",
+      "include_drafts": "boolean"
     },
     "response": {
       "page": "number",

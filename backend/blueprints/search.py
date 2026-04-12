@@ -49,6 +49,7 @@ def search_recipes(db_sess: Session) -> SearchRecipesResponse:
         sort_order (str): Sort direction: 'asc' or 'desc'.
         page (int): Page number (1‑based). Default 1.
         per_page (int): Number of recipes per page. Default 20.
+        include_drafts (bool): If true, include draft recipes alongside published ones. Default false.
 
     Args:
         db_sess: Database session (injected by @use_db_sess).
@@ -57,7 +58,8 @@ def search_recipes(db_sess: Session) -> SearchRecipesResponse:
         SearchRecipesResponse: Dictionary with total count, pagination metadata, and recipe results.
 
     Note:
-        Only recipes with status 'published' are returned.
+        By default only recipes with status 'published' are returned.
+        If include_drafts is true, both 'published' and 'draft' recipes are included.
         Relevance sorting currently defaults to recipe ID (placeholder).
     """
     # Parse query parameters
@@ -74,9 +76,13 @@ def search_recipes(db_sess: Session) -> SearchRecipesResponse:
     sort_order = request.args.get("sort_order", "desc")  # asc, desc
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 20, type=int)
+    include_drafts = request.args.get("include_drafts", default=False, type=bool)
 
     # Start building query
-    q = Recipe.query2().filter(Recipe.status == RecipeStatus.PUBLISHED)
+    if include_drafts:
+        q = Recipe.query2().filter(Recipe.status.in_([RecipeStatus.PUBLISHED, RecipeStatus.DRAFT]))
+    else:
+        q = Recipe.query2().filter(Recipe.status == RecipeStatus.PUBLISHED)
 
     # Text search on title
     if query:
