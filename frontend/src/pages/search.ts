@@ -17,27 +17,65 @@ export default function render()
 {
 	setPageTitle("Поиск рецептов");
 
+	// Parse query parameters from URL
+	const urlParams = new URLSearchParams(window.location.search);
+	const parseNumber = (key: string): number | null =>
+	{
+		const val = urlParams.get(key);
+		if (val === null || val === "") return null;
+		const num = parseInt(val);
+		return isNaN(num) ? null : num;
+	};
+	const parseNumberArray = (key: string): number[] =>
+	{
+		return urlParams.getAll(key).map(v => parseInt(v)).filter(v => !isNaN(v));
+	};
+
+	const initialQ = urlParams.get("q") || "";
+	const initialCategoryId = parseNumber("category_id") || parseNumber("category");
+	const initialMaxActiveTime = parseNumber("max_active_time");
+	const initialDifficulty = parseNumber("difficulty");
+	const initialIngredientsInclude = parseNumberArray("ingredients_include");
+	const initialIngredientsExclude = parseNumberArray("ingredients_exclude");
+	const initialSortBy = (urlParams.get("sort_by") as "relevance" | "rating" | "date") || "relevance";
+	const initialSortOrder = (urlParams.get("sort_order") as "asc" | "desc") || "desc";
+	const initialPage = parseNumber("page") || 1;
+	const initialPageSize = parseNumber("per_page") || 20;
+
 	const categories = query_recipe_categories();
 
 	// Search parameters state
-	const searchText = $("");
-	const selectedCategory = $<number | null>(null);
-	const maxActiveTime = $<number | null>(null);
-	const difficulty = $<number | null>(null);
-	const sortBy = $<"relevance" | "rating" | "date">("relevance");
-	const sortOrder = $<"asc" | "desc">("desc");
+	const searchText = $(initialQ);
+	const selectedCategory = $<number | null>(initialCategoryId);
+	const maxActiveTime = $<number | null>(initialMaxActiveTime);
+	const difficulty = $<number | null>(initialDifficulty);
+	const sortBy = $<"relevance" | "rating" | "date">(initialSortBy);
+	const sortOrder = $<"asc" | "desc">(initialSortOrder);
+	// Determine initial ingredient filter mode and selected IDs
+	let initialIngredientFilterMode: IngredientFilterMode = "contains_any";
+	let initialSelectedIngredientIds: number[] = [];
+	if (initialIngredientsExclude.length > 0)
+	{
+		initialIngredientFilterMode = "excludes";
+		initialSelectedIngredientIds = initialIngredientsExclude;
+	} else if (initialIngredientsInclude.length > 0)
+	{
+		initialIngredientFilterMode = "contains_any";
+		initialSelectedIngredientIds = initialIngredientsInclude;
+	}
+
 	// Ingredient filter state
-	const ingredientsInclude = $<number[]>([]);
-	const ingredientsExclude = $<number[]>([]);
-	const ingredientFilterMode = $<IngredientFilterMode>("contains_any");
+	const ingredientsInclude = $<number[]>(initialIngredientsInclude);
+	const ingredientsExclude = $<number[]>(initialIngredientsExclude);
+	const ingredientFilterMode = $<IngredientFilterMode>(initialIngredientFilterMode);
 
 	// Pagination state
-	const currentPage = $(1);
-	const pageSize = $(20);
+	const currentPage = $(initialPage);
+	const pageSize = $(initialPageSize);
 
 	// Ingredient filter component instance
 	const ingredientFilter = IngredientFilter({
-		initialSelected: [],
+		initialSelected: initialSelectedIngredientIds,
 		onChange: (filter) =>
 		{
 			ingredientsInclude.v = filter.include;
@@ -46,7 +84,7 @@ export default function render()
 		},
 	});
 
-	// Function to build search query
+	// Function to build search query for API
 	const buildSearchQuery = () => ({
 		q: searchText.v || undefined,
 		category_id: selectedCategory.v || undefined,
@@ -60,12 +98,49 @@ export default function render()
 		per_page: pageSize.v,
 	});
 
+	// Function to build query params for URL
+	const buildUrlQueryParams = () =>
+	{
+		const params: Record<string, string | number | (string | number)[]> = {};
+		if (searchText.v) params.q = searchText.v;
+		if (selectedCategory.v !== null) params.category_id = selectedCategory.v;
+		if (maxActiveTime.v !== null) params.max_active_time = maxActiveTime.v;
+		if (difficulty.v !== null) params.difficulty = difficulty.v;
+		if (ingredientsInclude.v.length > 0) params.ingredients_include = ingredientsInclude.v;
+		if (ingredientsExclude.v.length > 0) params.ingredients_exclude = ingredientsExclude.v;
+		if (sortBy.v !== "relevance") params.sort_by = sortBy.v;
+		if (sortOrder.v !== "desc") params.sort_order = sortOrder.v;
+		if (currentPage.v !== 1) params.page = currentPage.v;
+		if (pageSize.v !== 20) params.per_page = pageSize.v;
+		return params;
+	};
+
+	// Update URL with current filters (without page reload)
+	const updateUrlFromState = () =>
+	{
+		const params = buildUrlQueryParams();
+		const searchParams = new URLSearchParams();
+		for (const [key, value] of Object.entries(params))
+		{
+			if (Array.isArray(value))
+			{
+				value.forEach(v => searchParams.append(key, v.toString()));
+			} else
+			{
+				searchParams.set(key, value.toString());
+			}
+		}
+		const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
+		window.history.replaceState(null, "", newUrl);
+	};
+
 	// Perform search
 	const searchResults = query_search_recipes();
 
 	const performSearch = () =>
 	{
-		searchResults.v.refetch(buildSearchQuery())
+		searchResults.v.refetch(buildSearchQuery());
+		updateUrlFromState();
 	};
 	performSearch();
 

@@ -206,7 +206,7 @@ export default function IngredientFilter(props: IngredientFilterProps): Ingredie
 
 		// Selected ingredients list
 		Div(styles.selectedList, [
-			$(selectedIds, ids => ids.length === 0
+			$(ingredientsQuery, () => $(selectedIds, ids => ids.length === 0
 				? Div(styles.emptyMessage, "Нет выбранных ингредиентов")
 				: ids.map(id =>
 					Div(styles.selectedItem, [
@@ -214,7 +214,7 @@ export default function IngredientFilter(props: IngredientFilterProps): Ingredie
 						Button([styles.selectedItemRemove], "×", () => removeIngredient(id)),
 					])
 				)
-			),
+			)),
 		]),
 	]);
 

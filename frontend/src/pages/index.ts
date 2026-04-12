@@ -19,13 +19,20 @@ export default function render()
 	const recipes = query_recipes();
 	const categories = query_recipe_categories();
 
+	// Search text state for the hero search bar
+	const searchText = $("");
+
 	Layout([
 		Div("index__hero", [
 			H1([], "Recipitto"),
 			initEl("p", "index__subtitle", "Найдите идеальный рецепт для любого случая"),
 			Div("index__search-bar", [
-				Input([], "text", "Поиск рецептов..."),
-				Button([], "Найти", () => toPage("search")),
+				Input([], "text", "Поиск рецептов...", (el) =>
+				{
+					el.value = searchText.v;
+					el.addEventListener("input", () => searchText.v = el.value);
+				}),
+				Button([], "Найти", () => toPage("search", undefined, { q: searchText.v })),
 			]),
 		]),
 		Div("index__content", [
