@@ -261,22 +261,25 @@ export default function render()
 						});
 					}),
 				]),
-				Button([], "Применить фильтры", performSearch),
-				Button([], "Сбросить", () =>
-				{
-					searchText.v = "";
-					selectedCategory.v = null;
-					maxActiveTime.v = null;
-					difficulty.v = null;
-					ingredientsInclude.v = [];
-					ingredientsExclude.v = [];
-					ingredientFilterMode.v = "contains_any";
-					// Reset component internal state
-					ingredientFilter.reset();
-					sortBy.v = "relevance";
-					sortOrder.v = "desc";
-					performSearch();
-				}),
+				Div("search-filter__submit", [
+
+					Button([], "Сбросить", () =>
+					{
+						searchText.v = "";
+						selectedCategory.v = null;
+						maxActiveTime.v = null;
+						difficulty.v = null;
+						ingredientsInclude.v = [];
+						ingredientsExclude.v = [];
+						ingredientFilterMode.v = "contains_any";
+						// Reset component internal state
+						ingredientFilter.reset();
+						sortBy.v = "relevance";
+						sortOrder.v = "desc";
+						performSearch();
+					}),
+					Button([], "Применить фильтры", performSearch),
+				]),
 			]),
 			Div("search-page__main", [
 				H1([], "Результаты поиска"),

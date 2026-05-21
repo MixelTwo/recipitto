@@ -19,9 +19,11 @@
 	opacity: 0.9;
 }
 
-.index__search-bar {
+.index__search-bar,
+.index__search-bar form {
 	display: flex;
 	max-width: 600px;
+	width: 100%;
 	margin: 0 auto;
 	gap: 1rem;
 }

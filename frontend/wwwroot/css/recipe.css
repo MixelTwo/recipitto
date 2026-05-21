@@ -74,7 +74,7 @@
 
 .recipe-page__image {
 	width: 100%;
-	max-height: 500px;
+	max-height: 50vh;
 	object-fit: cover;
 	border-radius: 1rem;
 	margin-bottom: 2rem;
@@ -225,4 +225,16 @@
 	padding: 0.5rem 1rem;
 	border-radius: 2rem;
 	border: 1px solid var(--primary-200);
+}
+
+
+.recipe-page__gallery-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1em;
+	margin-bottom: 1em;
+}
+.recipe-page__gallery-grid img {
+	height: 200px;
+	border-radius: 1em;
 }

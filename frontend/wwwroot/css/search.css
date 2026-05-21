@@ -54,6 +54,17 @@
 	cursor: pointer;
 }
 
+.search-filter__submit {
+	display: flex;
+	justify-content: space-between;
+}
+.search-filter__submit button {
+	padding: 0.2em 0.4em;
+	border: 1px solid var(--primary);
+	border-radius: 0.5em;
+	background-color: var(--primary-100);
+}
+
 .search-page__main {
 	flex: 1;
 }

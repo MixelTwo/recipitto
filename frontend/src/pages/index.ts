@@ -27,12 +27,14 @@ export default function render()
 			H1([], "Recipitto"),
 			initEl("p", "index__subtitle", "Найдите идеальный рецепт для любого случая"),
 			Div("index__search-bar", [
-				Input([], "text", "Поиск рецептов...", (el) =>
-				{
-					el.value = searchText.v;
-					el.addEventListener("input", () => searchText.v = el.value);
-				}),
-				Button([], "Найти", () => toPage("search", undefined, { q: searchText.v })),
+				initEl("form", [], [
+					Input([], "text", "Поиск рецептов...", (el) =>
+					{
+						el.value = searchText.v;
+						el.addEventListener("input", () => searchText.v = el.value);
+					}),
+					Button([], "Найти", () => toPage("search", undefined, { q: searchText.v })),
+				])
 			]),
 		]),
 		Div("index__content", [

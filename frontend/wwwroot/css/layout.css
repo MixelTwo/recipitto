@@ -46,6 +46,7 @@
 .layout__user button {
 	padding: 0.25em 0.5em;
 	border: 2px solid var(--primary);
+	border-radius: 0.25em;
 }
 
 .layout__body {

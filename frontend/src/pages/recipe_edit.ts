@@ -42,6 +42,8 @@ export default function render({ id }: { id?: string })
 
 	const recipe = recipeId ? query_recipe_by_id(recipeId) : null;
 	const categories = query_recipe_categories();
+	const create_recipe = mutate_create_recipe();
+	const update_recipe = mutate_update_recipe(recipeId || -1);
 
 	// Form state
 	const title = $("");
@@ -136,7 +138,7 @@ export default function render({ id }: { id?: string })
 			let savedRecipeId: number | null = null;
 			if (isNew)
 			{
-				const result = await mutate_create_recipe().v.fetch(data);
+				const result = await create_recipe.v.fetch(data);
 				if (result)
 				{
 					savedRecipeId = (result as any).id;
@@ -144,7 +146,7 @@ export default function render({ id }: { id?: string })
 			} else
 			{
 				if (!recipeId) return;
-				const result = await mutate_update_recipe(recipeId).v.fetch(data);
+				const result = await update_recipe.v.fetch(data);
 				if (result)
 				{
 					savedRecipeId = recipeId;
@@ -378,6 +380,8 @@ export default function render({ id }: { id?: string })
 						searchPlaceholder: "Начните вводить название ингредиента...",
 					})),
 				]),
+				$(create_recipe, e => e.error && Span("recipe-edit__error-text", e.error.msg)),
+				$(update_recipe, e => e.error && Span("recipe-edit__error-text", e.error.msg)),
 				Div("recipe-edit__actions", [
 					Button([], "Отмена", () =>
 					{
